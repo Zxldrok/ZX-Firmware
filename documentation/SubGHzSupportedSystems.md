@@ -23,7 +23,7 @@ That list is only for default SubGHz app, apps like *Weather Station* have their
 - Beninca ARC (TOGO2VA) `433.92MHz` `AM650` (128 bits, Dynamic AES128) (button code `0` emulates `hidden button` option on the remote)
 - BFT Mitto `433.92MHz` `AM650` (64 bits, Dynamic, KeeLoq based with Seed taken from serial)
 - CAME Atomo `433.92MHz, 868MHz` `AM650` (62 bits, Dynamic)
-- CAME TWEE `433.92MHz` `AM650` (54 bits, Static)
+- CAME TWEE `433.92MHz` `AM650` (54 bits, Pseudo-Dynamic) (+ TOP44FGN) (aka New Fixed Code)
 - CAME `433.92MHz, 868MHz` `AM650` (12, 24 bits, Static)
 - Ditec GOL4 `433.92MHz` `AM650` (54 bits, Dynamic) (should be compatible with BIXLG4, BIXLS2, BIXLP2) - (right arrow emulates button `0` (hidden button))
 - Prastel `433.92MHz, 868MHz` `AM650` (25, 42 bits, Static)
