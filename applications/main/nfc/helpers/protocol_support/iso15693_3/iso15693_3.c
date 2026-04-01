@@ -127,7 +127,8 @@ static NfcCommand
 
         if(card_data->system_info.block_count != write_data->system_info.block_count ||
            card_data->system_info.block_size != write_data->system_info.block_size) {
-            furi_string_set(instance->text_box_store, "Incompatible card\n(block count/size\nmismatch)");
+            furi_string_set(
+                instance->text_box_store, "Incompatible card\n(block count/size\nmismatch)");
             view_dispatcher_send_custom_event(
                 instance->view_dispatcher, NfcCustomEventPollerFailure);
         } else {

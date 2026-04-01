@@ -277,8 +277,8 @@ Iso15693_3Error iso15693_3_poller_write_blocks(
     Iso15693_3Error ret = Iso15693_3ErrorNone;
 
     for(uint32_t i = 0; i < block_count; ++i) {
-        ret = iso15693_3_poller_write_block(
-            instance, &data[block_size * i], (uint8_t)i, block_size);
+        ret =
+            iso15693_3_poller_write_block(instance, &data[block_size * i], (uint8_t)i, block_size);
         if(ret != Iso15693_3ErrorNone) break;
     }
 
