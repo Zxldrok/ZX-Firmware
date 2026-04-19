@@ -75,6 +75,7 @@
 
 ### Fixed:
 - Sub-GHz:
+  - Fix display of memory full (by @WillyJL)
   - UL: Fixed button mapping for FAAC RC/XT (by @xMasterX)
   - UL: Possible Sommer timings fix (by @xMasterX)
   - UL: Various fixes and cleanup (by @xMasterX)
