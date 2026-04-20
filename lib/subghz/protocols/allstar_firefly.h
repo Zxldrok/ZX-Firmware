@@ -31,31 +31,113 @@
  *   &subghz_protocol_allstar_firefly,   (in the protocol array)
  */
 
-#include <lib/subghz/protocols/base.h>
+#include "base.h"
 
 /* Protocol name (must match what is written to .sub files) */
-#define SUBGHZ_PROTOCOL_ALLSTAR_FIREFLY_NAME  "Allstar Firefly"
+#define SUBGHZ_PROTOCOL_ALLSTAR_FIREFLY_NAME "Allstar Firefly"
 
-/* Timing constants (from 37-frame analysis of two captures) */
-#define AF_FREQ              318000000UL
-#define AF_BIT_COUNT         9u
-#define AF_SYM_COUNT         18u
+typedef struct SubGhzProtocolDecoderAllstarFirefly SubGhzProtocolDecoderAllstarFirefly;
+typedef struct SubGhzProtocolEncoderAllstarFirefly SubGhzProtocolEncoderAllstarFirefly;
 
-#define AF_LONG_PULSE_US     4045u
-#define AF_SHORT_PULSE_US    530u
-#define AF_SHORT_GAP_US      607u
-#define AF_LONG_GAP_US       4139u
-#define AF_INTERFRAME_US     30440u
+extern const SubGhzProtocolDecoder subghz_protocol_allstar_firefly_decoder;
+extern const SubGhzProtocolEncoder subghz_protocol_allstar_firefly_encoder;
+extern const SubGhzProtocol subghz_protocol_allstar_firefly;
 
-#define AF_SHORT_PULSE_MIN   300u
-#define AF_SHORT_PULSE_MAX   1200u
-#define AF_LONG_PULSE_MIN    2500u
-#define AF_LONG_PULSE_MAX    5500u
-#define AF_FRAME_THRESH_US   20000u
-#define AF_TX_REPEAT         20u
-#define AF_TX_BUF_SIZE       (AF_TX_REPEAT * AF_SYM_COUNT * 2u + 8u)
+/**
+ * Allocate SubGhzProtocolEncoderAllstarFirefly.
+ * @param environment Pointer to a SubGhzEnvironment instance
+ * @return SubGhzProtocolEncoderAllstarFirefly* pointer to a SubGhzProtocolEncoderAllstarFirefly instance
+ */
+void* subghz_protocol_encoder_allstar_firefly_alloc(SubGhzEnvironment* environment);
 
-/* Protocol vtable entries */
-extern const SubGhzProtocolDecoder subghz_protocol_decoder_allstar_firefly;
-extern const SubGhzProtocolEncoder subghz_protocol_encoder_allstar_firefly;
-extern const SubGhzProtocol        subghz_protocol_allstar_firefly;
+/**
+ * Free SubGhzProtocolEncoderAllstarFirefly.
+ * @param context Pointer to a SubGhzProtocolEncoderAllstarFirefly instance
+ */
+void subghz_protocol_encoder_allstar_firefly_free(void* context);
+
+/**
+ * Deserialize and generating an upload to send.
+ * @param context Pointer to a SubGhzProtocolEncoderAllstarFirefly instance
+ * @param flipper_format Pointer to a FlipperFormat instance
+ * @return status
+ */
+SubGhzProtocolStatus subghz_protocol_encoder_allstar_firefly_deserialize(
+    void* context,
+    FlipperFormat* flipper_format);
+
+/**
+ * Forced transmission stop.
+ * @param context Pointer to a SubGhzProtocolEncoderAllstarFirefly instance
+ */
+void subghz_protocol_encoder_allstar_firefly_stop(void* context);
+
+/**
+ * Getting the level and duration of the upload to be loaded into DMA.
+ * @param context Pointer to a SubGhzProtocolEncoderAllstarFirefly instance
+ * @return LevelDuration 
+ */
+LevelDuration subghz_protocol_encoder_allstar_firefly_yield(void* context);
+
+/**
+ * Allocate SubGhzProtocolDecoderAllstarFirefly.
+ * @param environment Pointer to a SubGhzEnvironment instance
+ * @return SubGhzProtocolDecoderAllstarFirefly* pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ */
+void* subghz_protocol_decoder_allstar_firefly_alloc(SubGhzEnvironment* environment);
+
+/**
+ * Free SubGhzProtocolDecoderAllstarFirefly.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ */
+void subghz_protocol_decoder_allstar_firefly_free(void* context);
+
+/**
+ * Reset decoder SubGhzProtocolDecoderAllstarFirefly.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ */
+void subghz_protocol_decoder_allstar_firefly_reset(void* context);
+
+/**
+ * Parse a raw sequence of levels and durations received from the air.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ * @param level Signal level true-high false-low
+ * @param duration Duration of this level in, us
+ */
+void subghz_protocol_decoder_allstar_firefly_feed(void* context, bool level, uint32_t duration);
+
+/**
+ * Getting the hash sum of the last randomly received parcel.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ * @return hash Hash sum
+ */
+uint8_t subghz_protocol_decoder_allstar_firefly_get_hash_data(void* context);
+
+/**
+ * Serialize data SubGhzProtocolDecoderAllstarFirefly.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ * @param flipper_format Pointer to a FlipperFormat instance
+ * @param preset The modulation on which the signal was received, SubGhzRadioPreset
+ * @return status
+ */
+SubGhzProtocolStatus subghz_protocol_decoder_allstar_firefly_serialize(
+    void* context,
+    FlipperFormat* flipper_format,
+    SubGhzRadioPreset* preset);
+
+/**
+ * Deserialize data SubGhzProtocolDecoderAllstarFirefly.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ * @param flipper_format Pointer to a FlipperFormat instance
+ * @return status
+ */
+SubGhzProtocolStatus subghz_protocol_decoder_allstar_firefly_deserialize(
+    void* context,
+    FlipperFormat* flipper_format);
+
+/**
+ * Getting a textual representation of the received data.
+ * @param context Pointer to a SubGhzProtocolDecoderAllstarFirefly instance
+ * @param output Resulting text
+ */
+void subghz_protocol_decoder_allstar_firefly_get_string(void* context, FuriString* output);
