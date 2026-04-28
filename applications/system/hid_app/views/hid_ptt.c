@@ -676,25 +676,28 @@ static void hid_ptt_draw_text_centered(Canvas* canvas, uint8_t y, FuriString* st
     furi_string_free(disp_str);
 }
 
-static void hid_ptt_draw_bt_connected(Canvas* canvas, uint8_t x, uint8_t y) {
-    // Home-like compact Bluetooth glyph with activity line and end dot.
+static void hid_ptt_draw_bt_glyph(Canvas* canvas, uint8_t x, uint8_t y) {
+    // Compact 5x8 Bluetooth rune.
     canvas_draw_line(canvas, x + 1, y + 0, x + 1, y + 7);
     canvas_draw_line(canvas, x + 1, y + 0, x + 4, y + 2);
     canvas_draw_line(canvas, x + 1, y + 7, x + 4, y + 5);
     canvas_draw_line(canvas, x + 1, y + 4, x + 4, y + 1);
     canvas_draw_line(canvas, x + 1, y + 4, x + 4, y + 7);
+}
 
-    canvas_draw_line(canvas, x + 7, y + 4, x + 12, y + 4);
-    canvas_draw_disc(canvas, x + 14, y + 4, 1);
+static void hid_ptt_draw_bt_connected(Canvas* canvas, uint8_t x, uint8_t y) {
+    // Connected icon: rune + activity pixels/line + end circle.
+    hid_ptt_draw_bt_glyph(canvas, x, y);
+
+    canvas_draw_dot(canvas, x + 6, y + 4);
+    canvas_draw_dot(canvas, x + 8, y + 4);
+    canvas_draw_line(canvas, x + 10, y + 4, x + 12, y + 4);
+    canvas_draw_circle(canvas, x + 14, y + 4, 1);
 }
 
 static void hid_ptt_draw_bt_idle(Canvas* canvas, uint8_t x, uint8_t y) {
-    // Home-like disconnected icon: only Bluetooth glyph.
-    canvas_draw_line(canvas, x + 1, y + 0, x + 1, y + 7);
-    canvas_draw_line(canvas, x + 1, y + 0, x + 4, y + 2);
-    canvas_draw_line(canvas, x + 1, y + 7, x + 4, y + 5);
-    canvas_draw_line(canvas, x + 1, y + 4, x + 4, y + 1);
-    canvas_draw_line(canvas, x + 1, y + 4, x + 4, y + 7);
+    // Disconnected icon: only Bluetooth rune.
+    hid_ptt_draw_bt_glyph(canvas, x, y);
 }
 
 static void hid_ptt_draw_status_bar(Canvas* canvas, bool show_bt, bool connected) {
@@ -741,7 +744,7 @@ static void hid_ptt_draw_status_bar(Canvas* canvas, bool show_bt, bool connected
     canvas_draw_box(canvas, battery_x + 1, battery_y + 1, ((battery_w - 2) * battery) / 100, 4);
 
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(canvas, 31, 9, AlignCenter, AlignBottom, time_str);
+    canvas_draw_str_aligned(canvas, 31, 10, AlignCenter, AlignBottom, time_str);
 }
 
 static void hid_ptt_draw_callback(Canvas* canvas, void* context) {
