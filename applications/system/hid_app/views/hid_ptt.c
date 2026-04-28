@@ -1,8 +1,11 @@
 #include "hid_ptt.h"
 #include "hid_ptt_menu.h"
 #include <gui/elements.h>
+#include <locale/locale.h>
 #include <notification/notification_messages.h>
 #include <gui/modules/widget.h>
+#include <furi_hal_power.h>
+#include <furi_hal_rtc.h>
 #include "../hid.h"
 #include "../views.h"
 
@@ -673,42 +676,93 @@ static void hid_ptt_draw_text_centered(Canvas* canvas, uint8_t y, FuriString* st
     furi_string_free(disp_str);
 }
 
+static void hid_ptt_draw_status_bar(Canvas* canvas, bool connected) {
+    char time_str[16];
+    DateTime dt;
+    furi_hal_rtc_get_datetime(&dt);
+
+    uint8_t hour = dt.hour;
+    if(locale_get_time_format() == LocaleTimeFormat12h) {
+        if(hour > 12) {
+            hour -= 12;
+        }
+        if(hour == 0) {
+            hour = 12;
+        }
+    }
+    snprintf(time_str, sizeof(time_str), "%02u:%02u", hour, dt.minute);
+
+    uint8_t battery = furi_hal_power_get_pct();
+    if(battery > 100) {
+        battery = 100;
+    }
+
+    canvas_set_color(canvas, ColorWhite);
+    canvas_draw_box(canvas, 0, 0, 64, 11);
+    canvas_set_color(canvas, ColorBlack);
+    canvas_draw_rframe(canvas, 0, 0, 64, 11, 1);
+    canvas_draw_line(canvas, 1, 9, 62, 9);
+
+    if(connected) {
+        canvas_draw_icon(canvas, 1, 0, &I_Ble_connected_15x15);
+    } else {
+        canvas_draw_icon(canvas, 1, 0, &I_Ble_disconnected_15x15);
+    }
+
+    const uint8_t battery_x = 47;
+    const uint8_t battery_y = 2;
+    const uint8_t battery_w = 13;
+    const uint8_t battery_h = 6;
+    canvas_draw_frame(canvas, battery_x, battery_y, battery_w, battery_h);
+    canvas_draw_box(canvas, battery_x + battery_w, battery_y + 2, 1, 2);
+    canvas_draw_box(canvas, battery_x + 1, battery_y + 1, ((battery_w - 2) * battery) / 100, 4);
+
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str_aligned(canvas, 31, 8, AlignCenter, AlignBottom, time_str);
+}
+
 static void hid_ptt_draw_callback(Canvas* canvas, void* context) {
     furi_assert(context);
     HidPushToTalkModel* model = context;
 
-    // Header
-    canvas_set_font(canvas, FontPrimary);
-#ifdef HID_TRANSPORT_BLE
-    if(model->connected) {
-        canvas_draw_icon(canvas, 0, 0, &I_Ble_connected_15x15);
-    } else {
-        canvas_draw_icon(canvas, 0, 0, &I_Ble_disconnected_15x15);
-    }
-#endif
-
-    // OS and App labels
-    canvas_set_font(canvas, FontSecondary);
-    hid_ptt_draw_text_centered(canvas, 73, model->app);
-    hid_ptt_draw_text_centered(canvas, 84, model->os);
-
-    // Help label
-    canvas_draw_icon(canvas, 0, 88, &I_Help_top_64x17);
-    canvas_draw_line(canvas, 4, 105, 4, 114);
-    canvas_draw_line(canvas, 63, 105, 63, 114);
-    canvas_draw_icon(canvas, 7, 107, &I_Hold_15x5);
-    canvas_draw_icon(canvas, 24, 105, &I_BtnLeft_9x9);
-    canvas_draw_icon(canvas, 34, 108, &I_for_help_27x5);
-    canvas_draw_icon(canvas, 0, 115, &I_Help_exit_64x9);
-    canvas_draw_icon(canvas, 24, 115, &I_BtnBackV_9x9);
+    const uint8_t top_offset = 11;
+    const uint8_t helper_top_y = 92;
 
     const uint8_t x_1 = 0;
     const uint8_t x_2 = x_1 + 19 + 4;
     const uint8_t x_3 = x_1 + 19 * 2 + 8;
 
-    const uint8_t y_1 = 3;
+    const uint8_t y_1 = top_offset + 3;
     const uint8_t y_2 = y_1 + 19;
     const uint8_t y_3 = y_2 + 19;
+
+    const uint8_t controls_bottom_y = y_3 + 18;
+    const uint8_t labels_center_y = (controls_bottom_y + helper_top_y) / 2;
+    const uint8_t app_label_y = labels_center_y - 5;
+    const uint8_t os_label_y = app_label_y + 11;
+
+    // Header
+    canvas_set_font(canvas, FontPrimary);
+#ifdef HID_TRANSPORT_BLE
+    hid_ptt_draw_status_bar(canvas, model->connected);
+#else
+    hid_ptt_draw_status_bar(canvas, false);
+#endif
+
+    // OS and App labels
+    canvas_set_font(canvas, FontSecondary);
+    hid_ptt_draw_text_centered(canvas, app_label_y, model->app);
+    hid_ptt_draw_text_centered(canvas, os_label_y, model->os);
+
+    // Help label
+    canvas_draw_icon(canvas, 0, helper_top_y, &I_Help_top_64x17);
+    canvas_draw_line(canvas, 4, 109, 4, 118);
+    canvas_draw_line(canvas, 63, 109, 63, 118);
+    canvas_draw_icon(canvas, 7, 111, &I_Hold_15x5);
+    canvas_draw_icon(canvas, 24, 109, &I_BtnLeft_9x9);
+    canvas_draw_icon(canvas, 34, 112, &I_for_help_27x5);
+    canvas_draw_icon(canvas, 0, 119, &I_Help_exit_64x9);
+    canvas_draw_icon(canvas, 24, 119, &I_BtnBackV_9x9);
 
     // Up
     canvas_draw_icon(canvas, x_2, y_1, &I_Button_18x18);
@@ -756,23 +810,24 @@ static void hid_ptt_draw_callback(Canvas* canvas, void* context) {
 
     // Back / Mic
     const uint8_t x_mic = x_3;
-    canvas_draw_icon(canvas, x_mic, 0, &I_RoundButtonUnpressed_16x16);
+    const uint8_t y_mic = top_offset;
+    canvas_draw_icon(canvas, x_mic, y_mic, &I_RoundButtonUnpressed_16x16);
 
     if(!(!model->muted || (model->ptt_pressed))) {
         // show muted
         if(model->mic_pressed) {
             // canvas_draw_icon(canvas, x_mic + 1, 0, &I_MicrophonePressedCrossed_15x15);
-            canvas_draw_icon(canvas, x_mic, 0, &I_MicrophonePressedCrossedBtn_16x16);
+            canvas_draw_icon(canvas, x_mic, y_mic, &I_MicrophonePressedCrossedBtn_16x16);
         } else {
-            canvas_draw_icon(canvas, x_mic, 0, &I_MicrophoneCrossed_16x16);
+            canvas_draw_icon(canvas, x_mic, y_mic, &I_MicrophoneCrossed_16x16);
         }
     } else {
         // show unmuted
         if(model->mic_pressed) {
             // canvas_draw_icon(canvas, x_mic + 1, 0, &I_MicrophonePressed_15x15);
-            canvas_draw_icon(canvas, x_mic, 0, &I_MicrophonePressedBtn_16x16);
+            canvas_draw_icon(canvas, x_mic, y_mic, &I_MicrophonePressedBtn_16x16);
         } else {
-            canvas_draw_icon(canvas, x_mic + 5, 2, &I_Mic_7x11);
+            canvas_draw_icon(canvas, x_mic + 5, y_mic + 2, &I_Mic_7x11);
         }
     }
 
