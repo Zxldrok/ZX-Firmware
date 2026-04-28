@@ -6,12 +6,15 @@
 #include <gui/modules/widget.h>
 #include <furi_hal_power.h>
 #include <furi_hal_rtc.h>
+#include <furi.h>
 #include "../hid.h"
 #include "../views.h"
 
 #include "hid_icons.h"
 
 #define TAG "HidPushToTalk"
+#define HID_PTT_LEFT_HOLD_ANIM_STEP_MS 100U
+#define HID_PTT_LEFT_HOLD_ANIM_STEPS 5U
 
 // Exact home status-bar Bluetooth icon pixels (from assets/icons/StatusBar).
 // Bitmap format for canvas_draw_bitmap(): row-major, 1-bit.
@@ -29,6 +32,7 @@ struct HidPushToTalk {
     View* view;
     Hid* hid;
     Widget* help;
+    FuriTimer* left_hold_timer;
 };
 
 typedef void (*PushToTalkActionCallback)(HidPushToTalk* hid_ptt);
@@ -47,6 +51,7 @@ typedef struct {
     size_t osIndex;
     size_t appIndex;
     size_t window_position;
+    uint8_t left_hold_progress;
     PushToTalkActionCallback callback_trigger_mute;
     PushToTalkActionCallback callback_trigger_camera;
     PushToTalkActionCallback callback_trigger_hand;
@@ -73,6 +78,66 @@ enum HidPushToTalkAppIndex {
     HidPushToTalkAppIndexZoomGlobal,
     HidPushToTalkAppIndexSize,
 };
+
+static bool hid_ptt_is_zoom_app(size_t app_index) {
+    return (app_index == HidPushToTalkAppIndexZoom) ||
+           (app_index == HidPushToTalkAppIndexZoomGlobal);
+}
+
+static void hid_ptt_left_hold_timer_callback(void* context) {
+    furi_assert(context);
+    HidPushToTalk* hid_ptt = context;
+    with_view_model(
+        hid_ptt->view,
+        HidPushToTalkModel * model,
+        {
+            if(model->left_pressed && hid_ptt_is_zoom_app(model->appIndex)) {
+                if(model->left_hold_progress < HID_PTT_LEFT_HOLD_ANIM_STEPS) {
+                    model->left_hold_progress++;
+                }
+            } else {
+                model->left_hold_progress = 0;
+                furi_timer_stop(hid_ptt->left_hold_timer);
+            }
+        },
+        true);
+}
+
+static void hid_ptt_draw_zoom_enter_hint(
+    Canvas* canvas,
+    uint8_t x,
+    uint8_t y,
+    uint8_t progress,
+    bool pressed) {
+    const uint8_t width = 18;
+    const uint8_t height = 10;
+    const uint8_t inner_x = x + 1;
+    const uint8_t inner_y = y + 1;
+    const uint8_t inner_w = width - 2;
+    const uint8_t inner_h = height - 1;
+
+    if(progress > 0) {
+        const uint8_t fill_w = (inner_w * progress) / HID_PTT_LEFT_HOLD_ANIM_STEPS;
+        if(fill_w > 0) {
+            canvas_draw_box(canvas, inner_x, inner_y, fill_w, inner_h - 1);
+        }
+    }
+
+    for(uint8_t dot_x = x; dot_x < x + width; dot_x += 2) {
+        canvas_draw_dot(canvas, dot_x, y + height - 1);
+    }
+    for(uint8_t dot_y = y + 1; dot_y < y + height; dot_y += 2) {
+        canvas_draw_dot(canvas, x, dot_y);
+        canvas_draw_dot(canvas, x + width - 1, dot_y);
+    }
+
+    UNUSED(pressed);
+    if(progress > 0) {
+        canvas_set_color(canvas, ColorWhite);
+    }
+    canvas_draw_icon(canvas, x + 4, y + 1, &I_Enter_11x7);
+    canvas_set_color(canvas, ColorBlack);
+}
 
 // meet, zoom
 static void hid_ptt_start_ptt_meet_zoom(HidPushToTalk* hid_ptt) {
@@ -857,6 +922,10 @@ static void hid_ptt_draw_callback(Canvas* canvas, void* context) {
     }
     canvas_set_color(canvas, ColorBlack);
 
+    if(hid_ptt_is_zoom_app(model->appIndex)) {
+        hid_ptt_draw_zoom_enter_hint(canvas, x_1, y_2 + 18, model->left_hold_progress, model->left_pressed);
+    }
+
     // Right / Camera
     canvas_draw_icon(canvas, x_3, y_2, &I_Button_18x18);
     if(model->right_pressed) {
@@ -930,6 +999,12 @@ static void hid_ptt_process(HidPushToTalk* hid_ptt, InputEvent* event) {
                     hid_hal_consumer_key_press(hid_ptt->hid, HID_CONSUMER_VOLUME_DECREMENT);
                 } else if(event->key == InputKeyLeft) {
                     model->left_pressed = true;
+                    if(hid_ptt_is_zoom_app(model->appIndex)) {
+                        model->left_hold_progress = 0;
+                        furi_timer_start(
+                            hid_ptt->left_hold_timer,
+                            furi_ms_to_ticks(HID_PTT_LEFT_HOLD_ANIM_STEP_MS));
+                    }
                 } else if(event->key == InputKeyRight) {
                     model->right_pressed = true;
                 } else if(event->key == InputKeyOk) {
@@ -953,6 +1028,8 @@ static void hid_ptt_process(HidPushToTalk* hid_ptt, InputEvent* event) {
                     }
                 } else if(event->key == InputKeyLeft) {
                     model->left_pressed = false;
+                    model->left_hold_progress = 0;
+                    furi_timer_stop(hid_ptt->left_hold_timer);
                 } else if(event->key == InputKeyRight) {
                     model->right_pressed = false;
 
@@ -986,6 +1063,8 @@ static void hid_ptt_process(HidPushToTalk* hid_ptt, InputEvent* event) {
                 if(
                     model->appIndex == HidPushToTalkAppIndexZoom ||
                     model->appIndex == HidPushToTalkAppIndexZoomGlobal) {
+                    model->left_hold_progress = HID_PTT_LEFT_HOLD_ANIM_STEPS;
+                    furi_timer_stop(hid_ptt->left_hold_timer);
                     hid_hal_keyboard_press(hid_ptt->hid, HID_KEYBOARD_RETURN);
                     hid_hal_keyboard_release(hid_ptt->hid, HID_KEYBOARD_RETURN);
                     notification_message(hid_ptt->hid->notifications, &sequence_single_vibro);
@@ -1006,6 +1085,7 @@ static bool hid_ptt_input_callback(InputEvent* event, void* context) {
     HidPushToTalk* hid_ptt = context;
     bool consumed = false;
     if(event->type == InputTypeLong && event->key == InputKeyBack) {
+        furi_timer_stop(hid_ptt->left_hold_timer);
         hid_hal_keyboard_release_all(hid_ptt->hid);
         notification_message(hid_ptt->hid->notifications, &sequence_double_vibro);
         widget_reset(hid_ptt->help);
@@ -1029,6 +1109,8 @@ static uint32_t hid_ptt_menu_view(void* context) {
 HidPushToTalk* hid_ptt_alloc(Hid* hid) {
     HidPushToTalk* hid_ptt = malloc(sizeof(HidPushToTalk));
     hid_ptt->hid = hid;
+    hid_ptt->left_hold_timer =
+        furi_timer_alloc(hid_ptt_left_hold_timer_callback, FuriTimerTypePeriodic, hid_ptt);
     hid_ptt->view = view_alloc();
     view_set_context(hid_ptt->view, hid_ptt);
     view_allocate_model(hid_ptt->view, ViewModelTypeLocking, sizeof(HidPushToTalkModel));
@@ -1041,6 +1123,7 @@ HidPushToTalk* hid_ptt_alloc(Hid* hid) {
         HidPushToTalkModel * model,
         {
             model->muted = true; // assume we're muted
+            model->left_hold_progress = 0;
             model->os = furi_string_alloc();
             model->app = furi_string_alloc();
         },
@@ -1263,6 +1346,8 @@ HidPushToTalk* hid_ptt_alloc(Hid* hid) {
 
 void hid_ptt_free(HidPushToTalk* hid_ptt) {
     furi_assert(hid_ptt);
+    furi_timer_stop(hid_ptt->left_hold_timer);
+    furi_timer_free(hid_ptt->left_hold_timer);
     notification_message(hid_ptt->hid->notifications, &sequence_reset_red);
     with_view_model(
         hid_ptt->view,
