@@ -93,7 +93,9 @@
 - NFC:
   - Fix sending 32+ byte ISO 15693-3 commands (by @WillyJL)
   - Fixes to `READ_MULTI` and `GET_BLOCK_SECURITY` commands in ISO 15693-3 emulation (#501 by @WillyJL & aaronjamt)
+  - Fix CLI with NTAG4xx and Type 4 Tag support (by @WillyJL)
   - UL: Fix LED not blinking at SLIX unlock (by @xMasterX)
+- uFBT: Fix .clangd config for IDEs besides VSCode (by @WillyJL)
 - UL: Settings: Storage settings exit scenes properly if used via favourites (by @xMasterX)
 - UL: UI: Some small changes (by @xMasterX)
 - OFW: USB: Fix USB HID keyboard LED state reporting (by @Caballosanex)
