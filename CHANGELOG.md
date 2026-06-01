@@ -1,9 +1,3 @@
-### Known Issues:
-- Sub-GHz app is now external due to running out of space in flash, but it uses almost all available RAM. This means that:
-  - qFlipper / Mobile App cannot be used together with Sub-GHz app for now
-  - Only 20-30 signals can be kept at a time in receive history while in Read mode
-  - Opening Sub-GHz after using a few other apps may result in an out of memory warning, simply reboot and it will work again
-
 ### Added:
 - Apps:
   - Games: Checkers (by @H4W9)
@@ -65,6 +59,12 @@
   - Unitemp: Numerous improvements from @MLAB-project fork (by @MLAB-project)
   - XRemote: Add dolphin xp and crash bugfix (by @teohumeau)
 - Sub-GHz:
+  - Sub-GHz app is now external on SD card, like on OFW (by @WillyJL)
+    - This was done to free some space on flash, which is always running out
+    - It means RAM consumption while using the Sub-GHz app has increased
+    - Usability remains mostly unaffected, our testing showed it can receive up to ~50 signals normally and ~10 signals with qFlipper / Flipper Mobile App connected
+    - You may experience some "out of memory" messages, this is inevitable as RAM eventually fragments and needs to be rearraged, simply resume as normal after the reboot
+  - Add Manually menu transparently refactored into a "separate app" for lower RAM usage, it is still accessed as before from Sub-GHz app (by @WillyJL)
   - UL: Counter editor refactoring (by @Dmitry422)
   - UL: Alutech AT-4N & Nice Flor S turbo speedup (by @Dmitry422)
   - UL: Sommer fm2 in Add manually now uses FM12K modulation (Sommer without fm2 tag uses FM476) (try this if regular option doesn't work for you) (by @xMasterX)
