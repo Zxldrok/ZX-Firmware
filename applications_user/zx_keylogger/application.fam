@@ -1,0 +1,10 @@
+App(
+    appid="zx_keylogger",
+    name="ZX Keylogger",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_keylogger_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_icon="zx_keylogger.png",
+    fap_category="USB",
+)
