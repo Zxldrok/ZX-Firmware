@@ -1,3 +1,5 @@
 *
 !/zx_keylogger/
 !/zx_keylogger/**
+!/zx_signal_scope/
+!/zx_signal_scope/**

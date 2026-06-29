@@ -1,0 +1,10 @@
+App(
+    appid="zx_signal_scope",
+    name="Zx Signal Scope",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_signal_scope_app_entry",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_version="1.0",
+    fap_category="Sub-GHz",
+)
