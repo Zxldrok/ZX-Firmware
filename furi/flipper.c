@@ -7,7 +7,7 @@
 
 #include <FreeRTOS.h>
 
-#define TAG "Flipper"
+#define TAG "Zx"
 
 #define HEAP_CANARY_VALUE 0x8BADF00D
 

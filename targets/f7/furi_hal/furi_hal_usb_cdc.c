@@ -43,7 +43,7 @@ struct CdcConfigDescriptorDual {
     struct CdcIadDescriptor iad_1;
 } FURI_PACKED;
 
-static const struct usb_string_descriptor dev_manuf_desc = USB_STRING_DESC("Flipper Devices Inc.");
+static const struct usb_string_descriptor dev_manuf_desc = USB_STRING_DESC("Zx");
 
 /* Device descriptor */
 static const struct usb_device_descriptor cdc_device_desc = {

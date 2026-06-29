@@ -46,10 +46,9 @@ static DialogMessageButton product_screen(DialogsApp* dialogs, DialogMessage* me
 static DialogMessageButton address_screen(DialogsApp* dialogs, DialogMessage* message) {
     DialogMessageButton result;
 
-    const char* screen_text = "Flipper Devices Inc.\n"
-                              "Suite B #551, 2803\n"
-                              "Philadelphia Pike, Claymont\n"
-                              "DE, USA 19703\n";
+    const char* screen_text = "Zx Team\n"
+                              "github.com/Zxldrok\n"
+                              "ZX-Firmware\n";
 
     dialog_message_set_text(message, screen_text, 0, 0, AlignLeft, AlignTop);
     result = dialog_message_show(dialogs, message);
@@ -109,7 +108,7 @@ static DialogMessageButton zx_info_screen3(DialogsApp* dialogs, DialogMessage* m
 
     const char* screen_text = "Community apps included in\nall builds except `c` build\n"
                               "For updates and more visit:\n"
-                              "github.com/Zxldrok";
+                              "github.com/Zxldrok/ZX-Firmware";
 
     dialog_message_set_text(message, screen_text, 0, 0, AlignLeft, AlignTop);
     result = dialog_message_show(dialogs, message);

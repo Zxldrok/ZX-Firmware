@@ -451,7 +451,7 @@ MassStorageUsb* mass_storage_usb_start(const char* filename, SCSIDeviceFunc fn) 
     mass->usb.cfg_descr = (void*)&usb_mass_cfg_descr;
 
     const char* name = furi_hal_version_get_device_name_ptr();
-    if(!name) name = "Flipper Zero";
+    if(!name) name = "Zx Zero";
     size_t len = strlen(name);
     struct usb_string_descriptor* str_prod_descr = malloc(len * 2 + 2);
     str_prod_descr->bLength = len * 2 + 2;
