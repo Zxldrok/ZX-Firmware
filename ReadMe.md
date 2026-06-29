@@ -32,14 +32,27 @@ Built-in BadUSB payload generator. Generates Duckyscript `.txt` files in `/ext/b
 
 Advanced IR signal analysis with turbo burst capture, waveform display, save and delete.
 
-<br/>
+## ZX Signal Scope
 
-## Build (ufbt)
+Real-time Sub-GHz RSSI waveform analyzer. Displays a scrolling amplitude graph on the Flipper's screen.
+
+- **4 frequency bands** — 315 MHz, 433 MHz, 868 MHz, 915 MHz (switch with Left/Right)
+- **Threshold line** — adjustable with Up/Down
+- **Peak hold** — dots show max amplitude per column
+- **Freeze mode** — press OK to pause, inspect captured waveform
+- **Live RSSI readout** — current dBm value displayed in status bar
+
+## Build FAP apps
 
 ```bash
+# With ufbt (recommended for standalone FAP development)
 pip install --upgrade ufbt
-cd applications_user/zx_keylogger
-ufbt build APPID=zx_keylogger
+cd applications_user/zx_signal_scope
+ufbt build APPID=zx_signal_scope
+
+# With fbt (full firmware toolchain)
+./fbt fap_zx_signal_scope
+./fbt launch APPSRC=zx_signal_scope     # build + upload + launch over USB
 ```
 
 ## Build (full firmware)
@@ -47,10 +60,4 @@ ufbt build APPID=zx_keylogger
 ```bash
 pip install -r scripts/requirements.txt
 ./fbt flash_usb
-```
-
-## Deploy FAP to Flipper
-
-```bash
-python applications_user/zx_keylogger/deploy_fap.py
 ```
