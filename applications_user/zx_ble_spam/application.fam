@@ -1,0 +1,12 @@
+App(
+    appid="zx_ble_spam",
+    name="Zx BLE Spam",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_ble_spam_app_entry",
+    requires=["gui"],
+    stack_size=3 * 1024,
+    fap_version="1.0",
+    fap_category="GPIO",
+    fap_author="Zx Firmware",
+    fap_description="Multi-tool BLE/nRF24: scanner, spam, sniffer, and more",
+)
