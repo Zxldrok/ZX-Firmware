@@ -1,0 +1,61 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-firmware:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flipperdevices/flipperzero-toolchain:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build firmware
+        run: |
+          ./fbt firmware_catalog
+          ./fbt updater_package
+
+      - name: Copy DFU to docs
+        run: |
+          mkdir -p docs/firmware
+          cp build/latest/dist/f7-z-firmware.dfu docs/firmware/zx-firmware.dfu
+          echo '{"version":"'$(git describe --tags --always)'","date":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","commit":"'$(git rev-parse HEAD)'"}' > docs/firmware/latest.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware
+          path: docs/firmware/
+
+  deploy-pages:
+    needs: build-firmware
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: docs/firmware/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+      - name: Deploy to Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

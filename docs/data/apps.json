@@ -1,0 +1,22 @@
+{
+  "apps": [
+    {
+      "name": "ZX Signal Scope",
+      "description": "Real-time RF spectrum analyzer for 300-928 MHz. Visualize signal strength, frequency hopping, and ambient RF activity.",
+      "category": "RF",
+      "version": "1.0.0",
+      "path": "zx_signal_scope.fap",
+      "icon": "📡",
+      "source": "https://github.com/Zxldrok/ZX-Firmware/tree/main/applications_user/zx_signal_scope"
+    },
+    {
+      "name": "ZX Keylogger",
+      "description": "BadUSB payload generator. Creates keyboard injection scripts for Windows Lock Screen bypass, credential harvesting, and reverse shells.",
+      "category": "BadUSB",
+      "version": "1.0.0",
+      "path": "zx_keylogger.fap",
+      "icon": "⌨️",
+      "source": "https://github.com/Zxldrok/ZX-Firmware/tree/main/applications_user/zx_keylogger"
+    }
+  ]
+}

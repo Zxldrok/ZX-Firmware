@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZX Firmware - Flipper Zero</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>⚡</text></svg>">
+</head>
+<body>
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a class="logo" href="#" data-page="home">⚡ ZX Firmware</a>
+    <div class="nav-links">
+      <a href="#" data-page="home">Home</a>
+      <a href="#" data-page="updater">Web Updater</a>
+      <a href="#" data-page="apps">Apps</a>
+      <a href="#" data-page="resources">Resources</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <section id="page-home" class="page active">
+    <div class="hero">
+      <div class="hero-icon">⚡</div>
+      <h1>ZX Firmware</h1>
+      <p class="hero-subtitle">Custom Flipper Zero firmware by Zxldrok</p>
+      <div class="hero-badges">
+        <a href="https://github.com/Zxldrok/ZX-Firmware" target="_blank" class="badge">
+          <span class="badge-icon">&#x2387;</span> GitHub
+        </a>
+        <a href="#" data-page="updater" class="badge badge-primary">
+          <span class="badge-icon">&#x21BB;</span> Flash Now
+        </a>
+      </div>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4A5;</div>
+        <h3>IR Boosted</h3>
+        <p>50% duty cycle, 3x repeats, 4096 sample buffer for maximum range</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F578;</div>
+        <h3>Zx Bot Mascot</h3>
+        <p>Custom dolphin replacement with unique animations</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F4E1;</div>
+        <h3>Signal Scope</h3>
+        <p>Real-time RF spectrum analyzer for 315/433/868/915 MHz bands</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#x1F511;</div>
+        <h3>Keylogger Payloads</h3>
+        <p>BadUSB payload generator for Windows/Linux/macOS</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-updater" class="page">
+    <h1>Web Updater</h1>
+    <p class="page-desc">Flash the latest ZX Firmware directly from your browser via USB.</p>
+    <div class="updater-card">
+      <div class="updater-status" id="status-box">
+        <div class="status-icon" id="status-icon">&#x26A0;</div>
+        <div>
+          <div class="status-title" id="status-title">Not Connected</div>
+          <div class="status-detail" id="status-detail">Connect your Flipper Zero via USB</div>
+        </div>
+      </div>
+      <div class="updater-controls">
+        <div class="form-group">
+          <label>Channel</label>
+          <select id="channel-select">
+            <option value="release">Release (stable)</option>
+            <option value="rc">Release Candidate</option>
+            <option value="dev">Development</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Version</label>
+          <select id="version-select" disabled>
+            <option>Loading...</option>
+          </select>
+        </div>
+        <div class="updater-actions">
+          <button class="btn btn-outline" id="connect-btn" onclick="updater.connect()">
+            &#x1F50C; Connect
+          </button>
+          <button class="btn btn-primary" id="flash-btn" onclick="updater.flash()" disabled>
+            &#x21BB; Flash Firmware
+          </button>
+        </div>
+      </div>
+      <div class="updater-log" id="log-box">
+        <div class="log-header">Log</div>
+        <div class="log-content" id="log-content">
+          <div class="log-entry log-info">Ready. Connect your Flipper Zero to begin.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-apps" class="page">
+    <h1>Apps</h1>
+    <p class="page-desc">Custom FAP applications included with ZX Firmware.</p>
+    <div class="apps-grid" id="apps-grid">
+      <div class="loading-spinner"></div>
+    </div>
+  </section>
+
+  <section id="page-resources" class="page">
+    <h1>Resources</h1>
+    <p class="page-desc">IR, Sub-GHz, and BadUSB files for your Flipper Zero.</p>
+    <div class="resource-tabs">
+      <button class="tab active" data-cat="ir">IR</button>
+      <button class="tab" data-cat="subghz">Sub-GHz</button>
+      <button class="tab" data-cat="badusb">BadUSB</button>
+    </div>
+    <div class="resource-list" id="resource-list">
+      <div class="loading-spinner"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <span>ZX Firmware by Zxldrok</span>
+    <a href="https://github.com/Zxldrok/ZX-Firmware" target="_blank">GitHub</a>
+  </div>
+</footer>
+
+<script src="js/app.js"></script>
+<script src="js/updater.js"></script>
+</body>
+</html>

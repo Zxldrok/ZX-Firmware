@@ -1,0 +1,74 @@
+[
+  {
+    "category": "ir",
+    "name": "Samsung TV Remote",
+    "size": "2.4 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/ir/samsung_tv.ir"
+  },
+  {
+    "category": "ir",
+    "name": "LG TV Remote",
+    "size": "3.1 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/ir/lg_tv.ir"
+  },
+  {
+    "category": "ir",
+    "name": "Panasonic AC",
+    "size": "1.8 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/ir/panasonic_ac.ir"
+  },
+  {
+    "category": "ir",
+    "name": "Sony Soundbar",
+    "size": "1.2 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/ir/sony_soundbar.ir"
+  },
+  {
+    "category": "subghz",
+    "name": "Toyota Key Fob (raw)",
+    "size": "0.8 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/subghz/toyota_key.sub"
+  },
+  {
+    "category": "subghz",
+    "name": "Tesla Charger Port",
+    "size": "0.6 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/subghz/tesla_charger.sub"
+  },
+  {
+    "category": "subghz",
+    "name": "Garage Door Opener (315 MHz)",
+    "size": "0.5 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/subghz/garage_315.sub"
+  },
+  {
+    "category": "subghz",
+    "name": "Gate Remote (433 MHz)",
+    "size": "0.5 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/subghz/gate_433.sub"
+  },
+  {
+    "category": "badusb",
+    "name": "Windows Lock Screen Bypass",
+    "size": "1.1 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/badusb/win_lock_bypass.txt"
+  },
+  {
+    "category": "badusb",
+    "name": "MacOS Credential Harvester",
+    "size": "1.3 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/badusb/macos_harvest.txt"
+  },
+  {
+    "category": "badusb",
+    "name": "Linux Reverse Shell",
+    "size": "0.9 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/badusb/linux_revshell.txt"
+  },
+  {
+    "category": "badusb",
+    "name": "Windows Wifi Credentials",
+    "size": "1.0 KB",
+    "url": "https://raw.githubusercontent.com/Zxldrok/ZX-Firmware/main/docs/resources/badusb/win_wifi_steal.txt"
+  }
+]
