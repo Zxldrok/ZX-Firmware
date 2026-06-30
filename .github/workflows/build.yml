@@ -8,8 +8,6 @@ on:
 jobs:
   build-firmware:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flipperdevices/flipperzero-toolchain:latest
     steps:
       - uses: actions/checkout@v4
 
