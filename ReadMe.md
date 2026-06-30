@@ -42,17 +42,38 @@ Real-time Sub-GHz RSSI waveform analyzer. Displays a scrolling amplitude graph o
 - **Freeze mode** — press OK to pause, inspect captured waveform
 - **Live RSSI readout** — current dBm value displayed in status bar
 
+## ZX BLE Spam
+
+BLE spammer using the **built-in STM32WB radio** — no nRF24 module required!
+
+Cycles through 10 device types every 120ms, randomizing MAC every 5 packets:
+
+| Device        | Type                | Company |
+|---------------|---------------------|---------|
+| iPhone 15     | Apple MFG           | 0x004C  |
+| AirPods Pro   | Apple MFG           | 0x004C  |
+| AirTag        | Apple MFG           | 0x004C  |
+| Samsung S24   | Samsung MFG         | 0x0075  |
+| SmartTag2     | Samsung MFG         | 0x0075  |
+| Tile Pro      | Apple MFG           | 0x004C  |
+| Pixel 9       | Apple MFG           | 0x004C  |
+| iBeacon       | Apple iBeacon       | 0x004C  |
+| Surface Pro   | Microsoft MFG       | 0x0006  |
+| LG TV         | Complete Local Name | —       |
+
+Uses `furi_hal_bt_extra_beacon_*` API for non-connectable advertising. Visible in BLE scanner apps like **nRF Connect** or **LightBlue**.
+
 ## Build FAP apps
 
 ```bash
 # With ufbt (recommended for standalone FAP development)
 pip install --upgrade ufbt
-cd applications_user/zx_signal_scope
-ufbt build APPID=zx_signal_scope
+cd applications_user/zx_ble_spam
+ufbt build APPID=zx_ble_spam
 
 # With fbt (full firmware toolchain)
-./fbt fap_zx_signal_scope
-./fbt launch APPSRC=zx_signal_scope     # build + upload + launch over USB
+./fbt fap_zx_ble_spam
+./fbt launch APPSRC=zx_ble_spam     # build + upload + launch over USB
 ```
 
 ## Build (full firmware)
