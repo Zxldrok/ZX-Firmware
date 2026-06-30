@@ -18,7 +18,7 @@ jobs:
       - name: Copy DFU to docs
         run: |
           mkdir -p docs/firmware
-          cp build/latest/dist/f7-z-firmware.dfu docs/firmware/zx-firmware.dfu
+          cp dist/f7-C/flipper-z-f7-full-*.dfu docs/firmware/zx-firmware.dfu
           echo '{"version":"'$(git describe --tags --always)'","date":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","commit":"'$(git rev-parse HEAD)'"}' > docs/firmware/latest.json
 
       - uses: actions/upload-artifact@v4
