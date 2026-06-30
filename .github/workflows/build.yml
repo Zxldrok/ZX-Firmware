@@ -13,8 +13,7 @@ jobs:
 
       - name: Build firmware
         run: |
-          ./fbt firmware_catalog
-          ./fbt updater_package
+          ./fbt COMPACT=1 DEBUG=0 updater_package
 
       - name: Copy DFU to docs
         run: |
