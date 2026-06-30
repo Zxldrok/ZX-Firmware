@@ -50,12 +50,12 @@ Min level: 1
 Max level: 3
 Weight: 3
 
-Name: Zx_Wave_128x64
+Name: Zx_Boot_128x64
 Min butthurt: 0
-Max butthurt: 6
+Max butthurt: 18
 Min level: 1
-Max level: 2
-Weight: 3
+Max level: 30
+Weight: 10
 
 Name: Zx_Laptop_128x64
 Min butthurt: 0
