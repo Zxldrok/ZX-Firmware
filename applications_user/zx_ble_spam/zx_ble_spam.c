@@ -87,6 +87,10 @@ static App* app_alloc(void) {
     app->scanner_view = scanner_view_alloc(app);
     view_dispatcher_add_view(app->view_dispatcher, AppViewScanner, app->scanner_view);
 
+    app->settings_tx_power = 3;
+    app->settings_mac_random = true;
+    app->settings_cycle_rate = 2;
+
     return app;
 }
 

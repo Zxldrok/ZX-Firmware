@@ -5,12 +5,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <extra_beacon.h>
-#include <furi_hal_bt.h>
 
-#define TAG "BleSpam"
 #define BLE_SPAM_TEMPLATES 10
 #define BLE_SPAM_INTERVAL_MS 120
-#define BLE_SPAM_MAC_CHANGE_INTERVAL 5
 
 static const char* device_names[] = {
     "iPhone 15", "AirPods Pro", "AirTag", "Samsung S24", "SmartTag2",
@@ -23,6 +20,17 @@ static uint8_t template_random_start[BLE_SPAM_TEMPLATES];
 static bool templates_ready = false;
 static FuriTimer* spam_timer = NULL;
 static uint32_t spam_counter = 0;
+
+static const uint16_t interval_map[] = {50, 100, 200, 500};
+static const uint8_t cycle_map[] = {1, 3, 5, 10};
+static const GapAdvPowerLevelInd power_map[] = {
+    GapAdvPowerLevel_Neg12_05dBm,
+    GapAdvPowerLevel_Neg9_9dBm,
+    GapAdvPowerLevel_Neg4dBm,
+    GapAdvPowerLevel_0dBm,
+    GapAdvPowerLevel_3dBm,
+    GapAdvPowerLevel_6dBm,
+};
 
 static void random_mac(uint8_t* mac) {
     mac[0] = (rand() & 0xFC) | 0x02;
@@ -147,28 +155,30 @@ static void spam_timer_callback(void* context) {
     spam_counter++;
     uint8_t idx = spam_counter % BLE_SPAM_TEMPLATES;
 
-    if(spam_counter % BLE_SPAM_MAC_CHANGE_INTERVAL == 0) {
+    bool change_mac = app->settings_mac_random &&
+        (spam_counter % cycle_map[app->settings_cycle_rate] == 0);
+
+    if(change_mac) {
         uint8_t new_mac[6];
         random_mac(new_mac);
         memcpy(app->ble_spam_mac, new_mac, 6);
 
+        uint16_t interval = interval_map[app->settings_adv_interval];
         GapExtraBeaconConfig config = {
-            .min_adv_interval_ms = 50,
-            .max_adv_interval_ms = 150,
+            .min_adv_interval_ms = interval,
+            .max_adv_interval_ms = interval + 100,
             .adv_channel_map = GapAdvChannelMapAll,
-            .adv_power_level = GapAdvPowerLevel_0dBm,
+            .adv_power_level = power_map[app->settings_tx_power],
             .address_type = GapAddressTypeRandom,
         };
         memcpy(config.address, new_mac, 6);
 
         uint8_t rs = template_random_start[idx];
         for(uint8_t j = rs; j < template_lens[idx]; j++) template_data[idx][j] = rand() & 0xFF;
-        FURI_LOG_I(TAG, "MAC change: idx=%d, len=%d", idx, template_lens[idx]);
-        bool r;
-        r = furi_hal_bt_extra_beacon_stop();  FURI_LOG_I(TAG, "  stop=%d", r);
-        r = furi_hal_bt_extra_beacon_set_config(&config);  FURI_LOG_I(TAG, "  cfg=%d", r);
-        r = furi_hal_bt_extra_beacon_set_data(template_data[idx], template_lens[idx]);  FURI_LOG_I(TAG, "  data=%d", r);
-        r = furi_hal_bt_extra_beacon_start();  FURI_LOG_I(TAG, "  start=%d", r);
+        furi_hal_bt_extra_beacon_stop();
+        furi_hal_bt_extra_beacon_set_config(&config);
+        furi_hal_bt_extra_beacon_set_data(template_data[idx], template_lens[idx]);
+        furi_hal_bt_extra_beacon_start();
     } else {
         uint8_t* d = template_data[idx];
         uint8_t rs = template_random_start[idx];
@@ -211,29 +221,20 @@ bool zx_ble_spam_scene_ble_spam_on_event(void* context, SceneManagerEvent event)
                 app->ble_spam_packets = 0;
                 random_mac(app->ble_spam_mac);
 
+                uint16_t interval = interval_map[app->settings_adv_interval];
                 GapExtraBeaconConfig config = {
-                    .min_adv_interval_ms = 50,
-                    .max_adv_interval_ms = 150,
+                    .min_adv_interval_ms = interval,
+                    .max_adv_interval_ms = interval + 100,
                     .adv_channel_map = GapAdvChannelMapAll,
-                    .adv_power_level = GapAdvPowerLevel_0dBm,
+                    .adv_power_level = power_map[app->settings_tx_power],
                     .address_type = GapAddressTypeRandom,
                 };
                 memcpy(config.address, app->ble_spam_mac, 6);
 
-                FURI_LOG_I(TAG, "Starting BLE Spam, MAC: %02X:%02X:%02X:%02X:%02X:%02X",
-                    app->ble_spam_mac[0], app->ble_spam_mac[1], app->ble_spam_mac[2],
-                    app->ble_spam_mac[3], app->ble_spam_mac[4], app->ble_spam_mac[5]);
-
-                bool r;
-                r = furi_hal_bt_extra_beacon_stop();
-                FURI_LOG_I(TAG, "stop: %d", r);
-                r = furi_hal_bt_extra_beacon_set_config(&config);
-                FURI_LOG_I(TAG, "set_config: %d", r);
-                r = furi_hal_bt_extra_beacon_set_data(template_data[0], template_lens[0]);
-                FURI_LOG_I(TAG, "set_data(len=%d): %d", template_lens[0], r);
-                r = furi_hal_bt_extra_beacon_start();
-                FURI_LOG_I(TAG, "start: %d", r);
-                FURI_LOG_I(TAG, "is_active=%d", furi_hal_bt_extra_beacon_is_active());
+                furi_hal_bt_extra_beacon_stop();
+                furi_hal_bt_extra_beacon_set_config(&config);
+                furi_hal_bt_extra_beacon_set_data(template_data[0], template_lens[0]);
+                furi_hal_bt_extra_beacon_start();
 
                 spam_timer = furi_timer_alloc(spam_timer_callback, FuriTimerTypePeriodic, app);
                 furi_timer_start(spam_timer, BLE_SPAM_INTERVAL_MS);

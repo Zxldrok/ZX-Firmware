@@ -72,6 +72,12 @@ typedef struct {
     uint8_t ble_spam_type;
     uint8_t ble_spam_mac[6];
 
+    uint8_t settings_radio;       // 0=built-in, 1=external(nRF24)
+    uint8_t settings_adv_interval; // index: 0=50ms, 1=100ms, 2=200ms, 3=500ms
+    uint8_t settings_tx_power;    // index: 0=-12, 1=-8, 2=-4, 3=0, 4=+3, 5=+6 dBm
+    bool settings_mac_random;     // true=randomize MAC
+    uint8_t settings_cycle_rate;  // index: 0=1, 1=3, 2=5, 3=10 packets
+
     ScanResult scan_results[MAX_SCAN_RESULTS];
     uint16_t scan_count;
     uint8_t scan_channel;
@@ -92,6 +98,7 @@ typedef enum {
     BLEEventStopScan,
     BLEEventPacketReceived,
     BLEEventUpdateDisplay,
+    BLEEventSettingsChanged,
 } AppCustomEvent;
 
 void app_add_log(App* app, const char* format, ...);
