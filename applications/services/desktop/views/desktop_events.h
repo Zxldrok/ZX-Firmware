@@ -9,6 +9,7 @@ typedef enum {
     DesktopMainEventOpenFavoriteRightShort,
     DesktopMainEventOpenFavoriteRightLong,
     DesktopMainEventOpenFavoriteOkLong,
+    DesktopMainEventOpenIrDoublePress,
     DesktopMainEventOpenMenu,
     DesktopMainEventOpenDebug,
     DesktopMainEventOpenPowerOff,

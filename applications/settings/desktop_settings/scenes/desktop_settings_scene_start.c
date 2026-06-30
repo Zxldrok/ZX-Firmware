@@ -14,6 +14,7 @@ typedef enum {
     DesktopSettingsClockDisplay,
     DesktopSettingsChangeName,
     DesktopSettingsHappyMode,
+    DesktopSettingsIrDoublePress,
     DesktopSettingsFavoriteLeftShort,
     DesktopSettingsFavoriteLeftLong,
     DesktopSettingsFavoriteRightShort,
@@ -179,6 +180,8 @@ void desktop_settings_scene_start_on_enter(void* context) {
 
     variable_item_list_add(variable_item_list, "Happy Mode", 1, NULL, NULL);
 
+    variable_item_list_add(variable_item_list, "IR Double-Press (Left)", 1, NULL, NULL);
+
     variable_item_list_add(variable_item_list, "Favorite App - Left Short", 1, NULL, NULL);
     variable_item_list_add(variable_item_list, "Favorite App - Left Long", 1, NULL, NULL);
     variable_item_list_add(variable_item_list, "Favorite App - Right Short", 1, NULL, NULL);
@@ -318,6 +321,11 @@ bool desktop_settings_scene_start_on_event(void* context, SceneManagerEvent even
                 DesktopSettingsAppSceneFavorite,
                 SCENE_STATE_SET_DUMMY_APP | DummyAppOkLong);
             scene_manager_next_scene(app->scene_manager, DesktopSettingsAppSceneFavorite);
+            break;
+
+        case DesktopSettingsIrDoublePress:
+            scene_manager_next_scene(
+                app->scene_manager, DesktopSettingsAppSceneIrDoublePress);
             break;
 
         case DesktopSettingsHappyMode:
