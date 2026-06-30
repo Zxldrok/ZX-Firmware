@@ -49,7 +49,6 @@ typedef struct {
     uint8_t display_clock;
     FavoriteApp favorite_apps[FavoriteAppNumber];
     FavoriteApp dummy_apps[DummyAppNumber];
-    char ir_doublepress_path[128];
 } DesktopSettings;
 
 void desktop_settings_load(DesktopSettings* settings);

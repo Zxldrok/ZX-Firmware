@@ -154,14 +154,6 @@ bool desktop_scene_main_on_event(void* context, SceneManagerEvent event) {
             break;
         }
 
-        case DesktopMainEventOpenIrDoublePress:
-            if(strlen(desktop->settings.ir_doublepress_path) > 0) {
-                loader_start_detached_with_gui_error(
-                    desktop->loader, "Infrared", desktop->settings.ir_doublepress_path);
-            }
-            consumed = true;
-            break;
-
         case DesktopMainEventOpenFavoriteLeftShort:
             desktop_scene_main_start_favorite(
                 desktop, &desktop->settings.favorite_apps[FavoriteAppLeftShort]);

@@ -7,8 +7,7 @@
 #define TAG "DesktopSettings"
 
 #define DESKTOP_SETTINGS_VER_14 (14)
-#define DESKTOP_SETTINGS_VER_17 (17)
-#define DESKTOP_SETTINGS_VER    (18)
+#define DESKTOP_SETTINGS_VER    (17)
 
 #define DESKTOP_SETTINGS_PATH  INT_PATH(DESKTOP_SETTINGS_FILE_NAME)
 #define DESKTOP_SETTINGS_MAGIC (0x17)
@@ -21,16 +20,6 @@ typedef struct {
     FavoriteApp favorite_apps[FavoriteAppNumber];
     FavoriteApp dummy_apps[DummyAppNumber];
 } DesktopSettingsV14;
-
-typedef struct {
-    uint32_t auto_lock_delay_ms;
-    uint8_t usb_inhibit_auto_lock;
-    uint8_t displayBatteryPercentage;
-    uint8_t dummy_mode;
-    uint8_t display_clock;
-    FavoriteApp favorite_apps[FavoriteAppNumber];
-    FavoriteApp dummy_apps[DummyAppNumber];
-} DesktopSettingsV17;
 
 // Actual size of DesktopSettings v13
 //static_assert(sizeof(DesktopSettingsV13) == 1234);
@@ -51,23 +40,6 @@ void desktop_settings_load(DesktopSettings* settings) {
                 sizeof(DesktopSettings),
                 DESKTOP_SETTINGS_MAGIC,
                 DESKTOP_SETTINGS_VER);
-
-        } else if(version == DESKTOP_SETTINGS_VER_17) {
-            DesktopSettingsV17* settings_v17 = malloc(sizeof(DesktopSettingsV17));
-
-            success = saved_struct_load(
-                DESKTOP_SETTINGS_PATH,
-                settings_v17,
-                sizeof(DesktopSettingsV17),
-                DESKTOP_SETTINGS_MAGIC,
-                DESKTOP_SETTINGS_VER_17);
-
-            if(success) {
-                memcpy(settings, settings_v17, sizeof(DesktopSettingsV17));
-                settings->ir_doublepress_path[0] = '\0';
-            }
-
-            free(settings_v17);
 
         } else if(version == DESKTOP_SETTINGS_VER_14) {
             DesktopSettingsV14* settings_v14 = malloc(sizeof(DesktopSettingsV14));

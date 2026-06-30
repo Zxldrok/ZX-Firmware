@@ -14,4 +14,3 @@ ADD_SCENE(desktop_settings, change_name, ChangeName)
 ADD_SCENE(desktop_settings, name_popup, NamePopup)
 
 ADD_SCENE(desktop_settings, happy_mode, HappyMode)
-ADD_SCENE(desktop_settings, ir_doublepress, IrDoublePress)
