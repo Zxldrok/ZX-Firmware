@@ -118,7 +118,7 @@ class Main(App):
     def core1firmware(self):
         self.logger.info("Flashing firmware")
         cp = CubeProgrammer(self._getCubeParams())
-        cp.flashBin("0x08008000", self.args.firmware)
+        cp.flashBin("0x08000000", self.args.firmware)
         self.logger.info("Complete")
         cp.resetTarget()
         return 0
