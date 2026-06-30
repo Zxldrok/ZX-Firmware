@@ -10,7 +10,7 @@
 #include <furi.h>
 #include <math.h>
 
-#define INFRARED_TIM_TX_DMA_BUFFER_SIZE 200
+#define INFRARED_TIM_TX_DMA_BUFFER_SIZE 512
 #define INFRARED_POLARITY_SHIFT         1
 
 #define INFRARED_TX_CCMR_HIGH \

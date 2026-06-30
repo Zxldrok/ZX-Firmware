@@ -445,14 +445,17 @@ InfraredErrorCode infrared_signal_search_by_index_and_read(
 void infrared_signal_transmit(const InfraredSignal* signal) {
     if(signal->is_raw) {
         const InfraredRawSignal* raw_signal = &signal->payload.raw;
-        infrared_send_raw_ext(
-            raw_signal->timings,
-            raw_signal->timings_size,
-            true,
-            raw_signal->frequency,
-            raw_signal->duty_cycle);
+        for(uint32_t i = 0; i < 3; i++) {
+            infrared_send_raw_ext(
+                raw_signal->timings,
+                raw_signal->timings_size,
+                true,
+                raw_signal->frequency,
+                raw_signal->duty_cycle);
+            if(i < 2) furi_delay_ms(20);
+        }
     } else {
         const InfraredMessage* message = &signal->payload.message;
-        infrared_send(message, 1);
+        infrared_send(message, 3);
     }
 }
