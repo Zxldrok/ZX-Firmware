@@ -21,6 +21,7 @@ typedef struct {
     ViewDispatcher* view_dispatcher;
     Submenu* submenu;
     Widget* widget;
+    bool in_widget;
 } ZxKeyloggerApp;
 
 static void zx_keylogger_save_payload(const char* filename, const char* content) {
@@ -169,6 +170,7 @@ static void zx_keylogger_show_result(ZxKeyloggerApp* app, const char* filename) 
 
     furi_string_free(text);
 
+    app->in_widget = true;
     view_dispatcher_switch_to_view(app->view_dispatcher, ZxKeyloggerViewWidget);
 }
 
@@ -182,6 +184,7 @@ static void zx_keylogger_show_about(ZxKeyloggerApp* app) {
         AlignCenter,
         FontSecondary,
         "ZX Keylogger v1.0\n\nGenerates BadUSB duckyscript\npayloads for penetration\ntesting engagements.\n\nWindows / Linux / macOS\n\nSave to SD card, then run\nvia BadUSB app.");
+    app->in_widget = true;
     view_dispatcher_switch_to_view(app->view_dispatcher, ZxKeyloggerViewWidget);
 }
 
@@ -215,7 +218,12 @@ static void zx_keylogger_submenu_callback(void* context, uint32_t index) {
 }
 
 static bool zx_keylogger_back_callback(void* context) {
-    UNUSED(context);
+    ZxKeyloggerApp* app = context;
+    if(app->in_widget) {
+        app->in_widget = false;
+        view_dispatcher_switch_to_view(app->view_dispatcher, ZxKeyloggerViewSubmenu);
+        return true;
+    }
     return false;
 }
 
@@ -225,6 +233,7 @@ int32_t zx_keylogger_app(void* p) {
     Gui* gui = furi_record_open(RECORD_GUI);
 
     ZxKeyloggerApp* app = malloc(sizeof(ZxKeyloggerApp));
+    app->in_widget = false;
 
     app->submenu = submenu_alloc();
     submenu_add_item(app->submenu, "Windows Keylogger (Deploy)", 0, zx_keylogger_submenu_callback, app);

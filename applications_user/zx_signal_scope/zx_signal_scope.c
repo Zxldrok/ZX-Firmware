@@ -115,7 +115,7 @@ static void draw_waveform(Canvas* canvas, SignalScope* scope) {
     }
 
     // Waveform
-    uint32_t start = scope->frozen ? scope->write_pos : 0;
+    uint32_t start = scope->write_pos;
     for(uint8_t i = 1; i < SAMPLE_COUNT - 1; i++) {
         uint8_t idx = (start + i) % SAMPLE_COUNT;
         uint8_t prev_idx = (start + i - 1) % SAMPLE_COUNT;
@@ -146,8 +146,9 @@ static void draw_waveform(Canvas* canvas, SignalScope* scope) {
 
     // Left: frequency
     char freq_str[16];
-    snprintf(freq_str, sizeof(freq_str), "%lu.%02lu MHz", scope->frequency / 1000000,
-             (scope->frequency % 1000000) / 10000);
+    snprintf(freq_str, sizeof(freq_str), "%u.%02u MHz",
+             (unsigned)(scope->frequency / 1000000),
+             (unsigned)((scope->frequency % 1000000) / 10000));
     canvas_draw_str(canvas, 2, 8, freq_str);
 
     // Right: RSSI value
