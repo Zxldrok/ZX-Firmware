@@ -63,6 +63,39 @@ a:hover { color: var(--accent-hover); }
   color: var(--accent);
   background: rgba(88,166,255,.1);
 }
+.nav-connect {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.connect-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  transition: background .3s;
+}
+.connect-dot.connected { background: var(--green); }
+.btn-connect {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn-connect:hover { background: var(--bg-hover); border-color: var(--accent); }
+.btn-connect.connected {
+  background: rgba(63,185,80,.1);
+  border-color: var(--green);
+  color: var(--green);
+}
+.btn-connect.connected:hover { background: rgba(63,185,80,.2); }
 
 /* Pages */
 .page { display: none; padding: 40px 0; }

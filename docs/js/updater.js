@@ -7,11 +7,12 @@ const updater = {
   log: [],
   dfuData: null,
 
+  async toggle() {
+    if (this.connected) await this.disconnect();
+    else await this.connect();
+  },
+
   async connect() {
-    if (this.connected) {
-      await this.disconnect();
-      return;
-    }
 
     try {
       this.port = await navigator.serial.requestPort();
@@ -159,6 +160,21 @@ const updater = {
       type === 'connected' ? '\u2705' : type === 'error' ? '\u274C' : '\u26A0';
     document.getElementById('status-title').textContent = title;
     document.getElementById('status-detail').textContent = detail;
+    this.updateNavbar();
+  },
+
+  updateNavbar() {
+    const dot = document.getElementById('navbar-dot');
+    const btn = document.getElementById('navbar-connect');
+    if (this.connected) {
+      dot.classList.add('connected');
+      btn.classList.add('connected');
+      btn.innerHTML = '\u2705 Connected';
+    } else {
+      dot.classList.remove('connected');
+      btn.classList.remove('connected');
+      btn.innerHTML = '\uD83D\uDD0C Connect';
+    }
   },
 
   logMsg(msg, type = 'info') {

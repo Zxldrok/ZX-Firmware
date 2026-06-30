@@ -17,6 +17,12 @@
       <a href="#" data-page="apps">Apps</a>
       <a href="#" data-page="resources">Resources</a>
     </div>
+    <div class="nav-connect">
+      <span class="connect-dot" id="navbar-dot"></span>
+      <button class="btn-connect" id="navbar-connect" onclick="updater.toggle()">
+        &#x1F50C; Connect
+      </button>
+    </div>
   </div>
 </nav>
 
@@ -86,7 +92,7 @@
           </select>
         </div>
         <div class="updater-actions">
-          <button class="btn btn-outline" id="connect-btn" onclick="updater.connect()">
+          <button class="btn btn-outline" id="connect-btn" onclick="updater.toggle()">
             &#x1F50C; Connect
           </button>
           <button class="btn btn-primary" id="flash-btn" onclick="updater.flash()" disabled>
