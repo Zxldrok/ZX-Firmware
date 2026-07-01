@@ -1,0 +1,14 @@
+App(
+    appid="zx_troll_hub",
+    name="Troll",
+    apptype=FlipperAppType.MENUEXTERNAL,
+    entry_point="zx_troll_hub_app",
+    requires=["gui", "loader"],
+    stack_size=2 * 1024,
+    icon="A_Troll_14",
+    order=75,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="Hub de fonctionnalités troll",
+)

@@ -14,7 +14,7 @@ App(
         "archive",
         "clock",
         "subghz_remote",
-        "zx_tv_b_gone",
+        "zx_troll_hub",
         "main_apps_on_start",
     ],
 )
