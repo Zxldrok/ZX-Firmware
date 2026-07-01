@@ -1,0 +1,12 @@
+App(
+    appid="zx_tv_b_gone",
+    name="ZX TV B Gone",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_tv_b_gone_app",
+    requires=["gui", "infrared"],
+    stack_size=3 * 1024,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="TV-B-Gone amélioré avec compteur de victimes",
+)
