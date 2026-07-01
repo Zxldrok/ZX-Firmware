@@ -6,9 +6,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-static FuriTimer* timer = NULL;
-static uint16_t pkt_count = 0;
-
 static const uint8_t ble_chs[] = {37, 38, 39};
 
 static void build_packet(uint8_t* buf, uint8_t* len, uint8_t type) {
@@ -39,20 +36,20 @@ static void build_packet(uint8_t* buf, uint8_t* len, uint8_t type) {
 
 static void timer_callback(void* context) {
     App* app = context;
-    uint8_t ch = ble_chs[pkt_count % 3];
-    pkt_count++;
+    uint8_t ch = ble_chs[app->scene_count % 3];
+    app->scene_count++;
 
     nrf24_set_channel(ch);
     nrf24_set_mode(NRF24ModeTx);
     nrf24_set_ble_adv_mode(true);
 
     uint8_t pkt[32]; uint8_t len;
-    build_packet(pkt, &len, pkt_count % 3);
+    build_packet(pkt, &len, app->scene_count % 3);
     nrf24_send_packet(pkt, len, 20);
     nrf24_set_mode(NRF24ModeRx);
 
-    if(pkt_count % 30 == 0) {
-        app_add_log(app, "Spam: %d packets", pkt_count);
+    if(app->scene_count % 30 == 0) {
+        app_add_log(app, "Spam: %d packets", app->scene_count);
         view_dispatcher_send_custom_event(app->view_dispatcher, BLEEventUpdateDisplay);
     }
 }
@@ -60,16 +57,16 @@ static void timer_callback(void* context) {
 static void button_callback(GuiButtonType type, InputType input_type, void* context) {
     (void)type; (void)input_type;
     App* app = context;
-    if(timer) {
-        furi_timer_free(timer); timer = NULL;
+    if(app->scene_timer) {
+        furi_timer_free(app->scene_timer); app->scene_timer = NULL;
         nrf24_set_ble_adv_mode(false);
     } else {
-        pkt_count = 0;
+        app->scene_count = 0;
         nrf24_set_ble_adv_mode(true);
         app->log_text[0] = '\0'; app->log_len = 0;
         app_add_log(app, "Spam started");
-        timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
-        furi_timer_start(timer, 50);
+        app->scene_timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
+        furi_timer_start(app->scene_timer, 50);
     }
     view_dispatcher_send_custom_event(app->view_dispatcher, BLEEventToggleScan);
 }
@@ -97,7 +94,7 @@ bool zx_ble_spam_scene_peripheral_spam_on_event(void* context, SceneManagerEvent
         return true;
     }
     if(event.type == SceneManagerEventTypeCustom && event.event == BLEEventToggleScan) {
-        if(timer) {
+        if(app->scene_timer) {
             widget_reset(app->widget);
             widget_add_string_element(app->widget, 64, 5, AlignCenter, AlignCenter, FontPrimary, "Peripheral Spam");
             widget_add_string_element(app->widget, 64, 25, AlignCenter, AlignCenter, FontSecondary, "Spamming");
@@ -115,8 +112,8 @@ bool zx_ble_spam_scene_peripheral_spam_on_event(void* context, SceneManagerEvent
 }
 
 void zx_ble_spam_scene_peripheral_spam_on_exit(void* context) {
-    if(timer) { furi_timer_free(timer); timer = NULL; }
     App* app = context;
+    if(app->scene_timer) { furi_timer_free(app->scene_timer); app->scene_timer = NULL; }
     nrf24_set_ble_adv_mode(false);
     text_box_set_text(app->text_box, "");
     widget_reset(app->widget);

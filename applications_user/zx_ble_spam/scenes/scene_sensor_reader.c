@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static FuriTimer* timer = NULL;
-
 static void timer_callback(void* context) {
     App* app = context;
     static uint8_t ch = 37;
@@ -44,15 +42,15 @@ static void timer_callback(void* context) {
 static void button_callback(GuiButtonType type, InputType input_type, void* context) {
     (void)type; (void)input_type;
     App* app = context;
-    if(timer) {
-        furi_timer_free(timer); timer = NULL;
+    if(app->scene_timer) {
+        furi_timer_free(app->scene_timer); app->scene_timer = NULL;
         nrf24_set_ble_adv_mode(false);
     } else {
         nrf24_set_ble_adv_mode(true);
         app->log_text[0] = '\0'; app->log_len = 0;
         app_add_log(app, "Sensor scan started");
-        timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
-        furi_timer_start(timer, 150);
+        app->scene_timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
+        furi_timer_start(app->scene_timer, 150);
     }
     view_dispatcher_send_custom_event(app->view_dispatcher, BLEEventToggleScan);
 }
@@ -80,7 +78,7 @@ bool zx_ble_spam_scene_sensor_reader_on_event(void* context, SceneManagerEvent e
         return true;
     }
     if(event.type == SceneManagerEventTypeCustom && event.event == BLEEventToggleScan) {
-        if(timer) {
+        if(app->scene_timer) {
             widget_reset(app->widget);
             widget_add_string_element(app->widget, 64, 5, AlignCenter, AlignCenter, FontPrimary, "Sensor Reader");
             widget_add_string_element(app->widget, 64, 25, AlignCenter, AlignCenter, FontSecondary, "Scanning");
@@ -97,8 +95,8 @@ bool zx_ble_spam_scene_sensor_reader_on_event(void* context, SceneManagerEvent e
 }
 
 void zx_ble_spam_scene_sensor_reader_on_exit(void* context) {
-    if(timer) { furi_timer_free(timer); timer = NULL; }
     App* app = context;
+    if(app->scene_timer) { furi_timer_free(app->scene_timer); app->scene_timer = NULL; }
     nrf24_set_ble_adv_mode(false);
     text_box_set_text(app->text_box, "");
     widget_reset(app->widget);

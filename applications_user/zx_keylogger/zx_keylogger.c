@@ -17,6 +17,16 @@ typedef enum {
     ZxKeyloggerViewWidget,
 } ZxKeyloggerView;
 
+typedef enum {
+    ZxKeyloggerMenuWinDeploy,
+    ZxKeyloggerMenuWinRetrieve,
+    ZxKeyloggerMenuWinCleanup,
+    ZxKeyloggerMenuLinux,
+    ZxKeyloggerMenuMacos,
+    ZxKeyloggerMenuAbout,
+    ZxKeyloggerMenuCount,
+} ZxKeyloggerMenuIndex;
+
 typedef struct {
     ViewDispatcher* view_dispatcher;
     Submenu* submenu;
@@ -190,29 +200,31 @@ static void zx_keylogger_show_about(ZxKeyloggerApp* app) {
 
 static void zx_keylogger_submenu_callback(void* context, uint32_t index) {
     ZxKeyloggerApp* app = context;
-    switch(index) {
-    case 0:
+    switch((ZxKeyloggerMenuIndex)index) {
+    case ZxKeyloggerMenuWinDeploy:
         zx_keylogger_gen_windows_deploy();
         zx_keylogger_show_result(app, "keylog_win_deploy.txt");
         break;
-    case 1:
+    case ZxKeyloggerMenuWinRetrieve:
         zx_keylogger_gen_windows_retrieve();
         zx_keylogger_show_result(app, "keylog_win_retrieve.txt");
         break;
-    case 2:
+    case ZxKeyloggerMenuWinCleanup:
         zx_keylogger_gen_windows_cleanup();
         zx_keylogger_show_result(app, "keylog_win_cleanup.txt");
         break;
-    case 3:
+    case ZxKeyloggerMenuLinux:
         zx_keylogger_gen_linux();
         zx_keylogger_show_result(app, "keylog_linux_deploy.txt");
         break;
-    case 4:
+    case ZxKeyloggerMenuMacos:
         zx_keylogger_gen_macos();
         zx_keylogger_show_result(app, "keylog_macos_deploy.txt");
         break;
-    case 5:
+    case ZxKeyloggerMenuAbout:
         zx_keylogger_show_about(app);
+        break;
+    default:
         break;
     }
 }
@@ -236,12 +248,12 @@ int32_t zx_keylogger_app(void* p) {
     app->in_widget = false;
 
     app->submenu = submenu_alloc();
-    submenu_add_item(app->submenu, "Windows Keylogger (Deploy)", 0, zx_keylogger_submenu_callback, app);
-    submenu_add_item(app->submenu, "Windows Keylogger (Get Log)", 1, zx_keylogger_submenu_callback, app);
-    submenu_add_item(app->submenu, "Windows Keylogger (Cleanup)", 2, zx_keylogger_submenu_callback, app);
-    submenu_add_item(app->submenu, "Linux Keylogger", 3, zx_keylogger_submenu_callback, app);
-    submenu_add_item(app->submenu, "macOS Keylogger", 4, zx_keylogger_submenu_callback, app);
-    submenu_add_item(app->submenu, "About", 5, zx_keylogger_submenu_callback, app);
+    submenu_add_item(app->submenu, "Windows Keylogger (Deploy)", ZxKeyloggerMenuWinDeploy, zx_keylogger_submenu_callback, app);
+    submenu_add_item(app->submenu, "Windows Keylogger (Get Log)", ZxKeyloggerMenuWinRetrieve, zx_keylogger_submenu_callback, app);
+    submenu_add_item(app->submenu, "Windows Keylogger (Cleanup)", ZxKeyloggerMenuWinCleanup, zx_keylogger_submenu_callback, app);
+    submenu_add_item(app->submenu, "Linux Keylogger", ZxKeyloggerMenuLinux, zx_keylogger_submenu_callback, app);
+    submenu_add_item(app->submenu, "macOS Keylogger", ZxKeyloggerMenuMacos, zx_keylogger_submenu_callback, app);
+    submenu_add_item(app->submenu, "About", ZxKeyloggerMenuAbout, zx_keylogger_submenu_callback, app);
     submenu_set_header(app->submenu, "ZX Keylogger");
 
     app->widget = widget_alloc();

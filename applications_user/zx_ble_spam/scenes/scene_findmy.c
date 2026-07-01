@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static FuriTimer* timer = NULL;
-
 static bool detect_airtag(NRF24Packet* pkt) {
     if(pkt->payload_len < 23) return false;
     for(uint8_t i = 0; i < pkt->payload_len - 1; i++) {
@@ -23,10 +21,9 @@ static bool detect_airtag(NRF24Packet* pkt) {
 
 static void timer_callback(void* context) {
     App* app = context;
-    static uint8_t ch_idx = 0;
     const uint8_t chs[] = {37, 38, 39};
-    uint8_t ch = chs[ch_idx % 3];
-    ch_idx++;
+    uint8_t ch = chs[app->scene_ch_idx % 3];
+    app->scene_ch_idx++;
 
     nrf24_set_channel(ch);
     nrf24_set_mode(NRF24ModeRx);
@@ -47,16 +44,16 @@ static void timer_callback(void* context) {
 static void button_callback(GuiButtonType type, InputType input_type, void* context) {
     (void)type; (void)input_type;
     App* app = context;
-    if(timer) {
-        furi_timer_free(timer); timer = NULL;
+    if(app->scene_timer) {
+        furi_timer_free(app->scene_timer); app->scene_timer = NULL;
         nrf24_set_ble_adv_mode(false);
     } else {
         nrf24_set_ble_adv_mode(true);
         app->log_text[0] = '\0'; app->log_len = 0;
         app->scan_count = 0;
         app_add_log(app, "FindMy scanning");
-        timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
-        furi_timer_start(timer, 150);
+        app->scene_timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
+        furi_timer_start(app->scene_timer, 150);
     }
     view_dispatcher_send_custom_event(app->view_dispatcher, BLEEventToggleScan);
 }
@@ -85,7 +82,7 @@ bool zx_ble_spam_scene_findmy_on_event(void* context, SceneManagerEvent event) {
     }
     if(event.type == SceneManagerEventTypeCustom && event.event == BLEEventToggleScan) {
         text_box_set_text(app->text_box, app->log_text);
-        if(timer) {
+        if(app->scene_timer) {
             widget_reset(app->widget);
             widget_add_string_element(app->widget, 64, 5, AlignCenter, AlignCenter, FontPrimary, "FindMy Scanner");
             widget_add_string_element(app->widget, 64, 25, AlignCenter, AlignCenter, FontSecondary, "Scanning");
@@ -102,8 +99,8 @@ bool zx_ble_spam_scene_findmy_on_event(void* context, SceneManagerEvent event) {
 }
 
 void zx_ble_spam_scene_findmy_on_exit(void* context) {
-    if(timer) { furi_timer_free(timer); timer = NULL; }
     App* app = context;
+    if(app->scene_timer) { furi_timer_free(app->scene_timer); app->scene_timer = NULL; }
     nrf24_set_ble_adv_mode(false);
     text_box_set_text(app->text_box, "");
     widget_reset(app->widget);

@@ -1,10 +1,10 @@
 #include "../zx_ble_spam.h"
 #include "scenes.h"
+#include <extra_beacon.h>
 #include <furi.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <extra_beacon.h>
 
 #define BLE_SPAM_TEMPLATES 10
 #define BLE_SPAM_INTERVAL_MS 120
@@ -17,9 +17,6 @@ static const char* device_names[] = {
 static uint8_t template_data[BLE_SPAM_TEMPLATES][31];
 static uint8_t template_lens[BLE_SPAM_TEMPLATES];
 static uint8_t template_random_start[BLE_SPAM_TEMPLATES];
-static bool templates_ready = false;
-static FuriTimer* spam_timer = NULL;
-static uint32_t spam_counter = 0;
 
 static const uint16_t interval_map[] = {50, 100, 200, 500};
 static const uint8_t cycle_map[] = {1, 3, 5, 10};
@@ -38,7 +35,8 @@ static void random_mac(uint8_t* mac) {
 }
 
 static void init_templates(void) {
-    if(templates_ready) return;
+    static bool ready = false;
+    if(ready) return;
     for(int t = 0; t < BLE_SPAM_TEMPLATES; t++) {
         uint8_t* d = template_data[t];
         uint8_t i = 0;
@@ -98,7 +96,7 @@ static void init_templates(void) {
         template_random_start[t] = 9;
     }
     template_random_start[9] = 7;
-    templates_ready = true;
+    ready = true;
 }
 
 static void button_callback(GuiButtonType type, InputType input_type, void* context) {
@@ -152,11 +150,11 @@ static void spam_timer_callback(void* context) {
     App* app = context;
     if(!app || !app->ble_spam_active) return;
 
-    spam_counter++;
-    uint8_t idx = spam_counter % BLE_SPAM_TEMPLATES;
+    app->scene_count++;
+    uint8_t idx = app->scene_count % BLE_SPAM_TEMPLATES;
 
     bool change_mac = app->settings_mac_random &&
-        (spam_counter % cycle_map[app->settings_cycle_rate] == 0);
+        (app->scene_count % cycle_map[app->settings_cycle_rate] == 0);
 
     if(change_mac) {
         uint8_t new_mac[6];
@@ -176,14 +174,22 @@ static void spam_timer_callback(void* context) {
         uint8_t rs = template_random_start[idx];
         for(uint8_t j = rs; j < template_lens[idx]; j++) template_data[idx][j] = rand() & 0xFF;
         furi_hal_bt_extra_beacon_stop();
-        furi_hal_bt_extra_beacon_set_config(&config);
-        furi_hal_bt_extra_beacon_set_data(template_data[idx], template_lens[idx]);
-        furi_hal_bt_extra_beacon_start();
+        if(!furi_hal_bt_extra_beacon_set_config(&config) ||
+           !furi_hal_bt_extra_beacon_set_data(template_data[idx], template_lens[idx]) ||
+           !furi_hal_bt_extra_beacon_start())
+        {
+            app_add_log(app, "BLE beacon error");
+            app->ble_spam_active = false;
+            update_widget(app);
+            return;
+        }
     } else {
         uint8_t* d = template_data[idx];
         uint8_t rs = template_random_start[idx];
         for(uint8_t j = rs; j < template_lens[idx]; j++) d[j] = rand() & 0xFF;
-        furi_hal_bt_extra_beacon_set_data(template_data[idx], template_lens[idx]);
+        if(!furi_hal_bt_extra_beacon_set_data(template_data[idx], template_lens[idx])) {
+            app_add_log(app, "BLE data error");
+        }
     }
 
     app->ble_spam_type = idx;
@@ -209,14 +215,14 @@ bool zx_ble_spam_scene_ble_spam_on_event(void* context, SceneManagerEvent event)
         if(event.event == BLEEventToggleScan) {
             if(app->ble_spam_active) {
                 app->ble_spam_active = false;
-                if(spam_timer) {
-                    furi_timer_stop(spam_timer);
-                    furi_timer_free(spam_timer);
-                    spam_timer = NULL;
+                if(app->scene_timer) {
+                    furi_timer_stop(app->scene_timer);
+                    furi_timer_free(app->scene_timer);
+                    app->scene_timer = NULL;
                 }
                 furi_hal_bt_extra_beacon_stop();
             } else {
-                spam_counter = 0;
+                app->scene_count = 0;
                 app->ble_spam_active = true;
                 app->ble_spam_packets = 0;
                 random_mac(app->ble_spam_mac);
@@ -232,12 +238,18 @@ bool zx_ble_spam_scene_ble_spam_on_event(void* context, SceneManagerEvent event)
                 memcpy(config.address, app->ble_spam_mac, 6);
 
                 furi_hal_bt_extra_beacon_stop();
-                furi_hal_bt_extra_beacon_set_config(&config);
-                furi_hal_bt_extra_beacon_set_data(template_data[0], template_lens[0]);
-                furi_hal_bt_extra_beacon_start();
+                if(!furi_hal_bt_extra_beacon_set_config(&config) ||
+                   !furi_hal_bt_extra_beacon_set_data(template_data[0], template_lens[0]) ||
+                   !furi_hal_bt_extra_beacon_start())
+                {
+                    app_add_log(app, "BLE start failed");
+                    app->ble_spam_active = false;
+                    update_widget(app);
+                    return true;
+                }
 
-                spam_timer = furi_timer_alloc(spam_timer_callback, FuriTimerTypePeriodic, app);
-                furi_timer_start(spam_timer, BLE_SPAM_INTERVAL_MS);
+                app->scene_timer = furi_timer_alloc(spam_timer_callback, FuriTimerTypePeriodic, app);
+                furi_timer_start(app->scene_timer, BLE_SPAM_INTERVAL_MS);
             }
             update_widget(app);
             return true;
@@ -250,10 +262,10 @@ bool zx_ble_spam_scene_ble_spam_on_event(void* context, SceneManagerEvent event)
 void zx_ble_spam_scene_ble_spam_on_exit(void* context) {
     App* app = context;
     app->ble_spam_active = false;
-    if(spam_timer) {
-        furi_timer_stop(spam_timer);
-        furi_timer_free(spam_timer);
-        spam_timer = NULL;
+    if(app->scene_timer) {
+        furi_timer_stop(app->scene_timer);
+        furi_timer_free(app->scene_timer);
+        app->scene_timer = NULL;
     }
     furi_hal_bt_extra_beacon_stop();
     widget_reset(app->widget);

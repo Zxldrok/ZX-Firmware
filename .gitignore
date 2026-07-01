@@ -56,6 +56,10 @@ null.d
 # SCons build dir
 /build
 
+# App artifacts
+applications_user/zx_keylogger/dist/
+applications_user/zx_signal_scope/dist/
+
 # Toolchain
 /toolchain
 

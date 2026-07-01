@@ -7,7 +7,6 @@
 #include <string.h>
 
 static const uint8_t ble_adv_channels[] = {37, 38, 39};
-static FuriTimer* timer = NULL;
 
 static void timer_callback(void* context) {
     App* app = context;
@@ -46,8 +45,8 @@ void zx_ble_spam_scene_scanner_on_enter(void* context) {
     app->anim_frame = 0;
     nrf24_set_ble_adv_mode(true);
 
-    timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
-    furi_timer_start(timer, 100);
+    app->scene_timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
+    furi_timer_start(app->scene_timer, 100);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, AppViewScanner);
 }
@@ -59,16 +58,16 @@ bool zx_ble_spam_scene_scanner_on_event(void* context, SceneManagerEvent event) 
             return true;
         }
         if(event.event == BLEEventToggleScan) {
-            if(timer) {
-                furi_timer_free(timer);
-                timer = NULL;
+            if(app->scene_timer) {
+                furi_timer_free(app->scene_timer);
+                app->scene_timer = NULL;
                 nrf24_set_mode(NRF24ModeRx);
             } else {
                 app_scan_results_reset(app);
                 app->scan_channel = 0;
                 nrf24_set_ble_adv_mode(true);
-                timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
-                furi_timer_start(timer, 100);
+                app->scene_timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
+                furi_timer_start(app->scene_timer, 100);
             }
             scanner_view_update(app);
             return true;
@@ -78,8 +77,8 @@ bool zx_ble_spam_scene_scanner_on_event(void* context, SceneManagerEvent event) 
 }
 
 void zx_ble_spam_scene_scanner_on_exit(void* context) {
-    if(timer) { furi_timer_free(timer); timer = NULL; }
     App* app = context;
+    if(app->scene_timer) { furi_timer_free(app->scene_timer); app->scene_timer = NULL; }
     nrf24_set_ble_adv_mode(false);
     text_box_set_text(app->text_box, "");
     widget_reset(app->widget);

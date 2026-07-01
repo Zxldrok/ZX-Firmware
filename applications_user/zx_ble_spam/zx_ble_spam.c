@@ -6,6 +6,41 @@
 #include <string.h>
 #include <toolbox/name_generator.h>
 
+#define SETTINGS_PATH "/ext/apps_data/zx_ble_spam/settings.bin"
+
+void settings_save(App* app) {
+    storage_simply_mkdir(app->storage, "/ext/apps_data/zx_ble_spam");
+    File* file = storage_file_alloc(app->storage);
+    if(storage_file_open(file, SETTINGS_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        uint8_t data[5] = {
+            app->settings_radio,
+            app->settings_adv_interval,
+            app->settings_tx_power,
+            app->settings_mac_random ? 1 : 0,
+            app->settings_cycle_rate,
+        };
+        storage_file_write(file, data, sizeof(data));
+        storage_file_close(file);
+    }
+    storage_file_free(file);
+}
+
+void settings_load(App* app) {
+    File* file = storage_file_alloc(app->storage);
+    if(storage_file_open(file, SETTINGS_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        uint8_t data[5];
+        if(storage_file_read(file, data, sizeof(data)) == sizeof(data)) {
+            app->settings_radio = data[0];
+            app->settings_adv_interval = data[1];
+            app->settings_tx_power = data[2];
+            app->settings_mac_random = data[3] != 0;
+            app->settings_cycle_rate = data[4];
+        }
+        storage_file_close(file);
+    }
+    storage_file_free(file);
+}
+
 void app_add_log(App* app, const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -60,7 +95,10 @@ static App* app_alloc(void) {
     App* app = malloc(sizeof(App));
     memset(app, 0, sizeof(App));
 
+    app->scene_timer = NULL;
+
     app->gui = furi_record_open(RECORD_GUI);
+    app->storage = furi_record_open(RECORD_STORAGE);
     app->scene_manager = scene_manager_alloc(&zx_ble_spam_scene_handlers, app);
     app->view_dispatcher = view_dispatcher_alloc();
 
@@ -87,14 +125,17 @@ static App* app_alloc(void) {
     app->scanner_view = scanner_view_alloc(app);
     view_dispatcher_add_view(app->view_dispatcher, AppViewScanner, app->scanner_view);
 
-    app->settings_tx_power = 3;
-    app->settings_mac_random = true;
-    app->settings_cycle_rate = 2;
+    settings_load(app);
 
     return app;
 }
 
 static void app_free(App* app) {
+    if(app->scene_timer) {
+        furi_timer_stop(app->scene_timer);
+        furi_timer_free(app->scene_timer);
+        app->scene_timer = NULL;
+    }
     view_dispatcher_remove_view(app->view_dispatcher, AppViewSubmenu);
     view_dispatcher_remove_view(app->view_dispatcher, AppViewWidget);
     view_dispatcher_remove_view(app->view_dispatcher, AppViewTextBox);
@@ -111,6 +152,7 @@ static void app_free(App* app) {
 
     scene_manager_free(app->scene_manager);
     view_dispatcher_free(app->view_dispatcher);
+    furi_record_close(RECORD_STORAGE);
     furi_record_close(RECORD_GUI);
     free(app);
 }

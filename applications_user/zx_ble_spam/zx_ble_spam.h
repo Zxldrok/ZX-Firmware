@@ -1,4 +1,5 @@
 #pragma once
+#include <furi.h>
 #include <gui/gui.h>
 #include <gui/scene_manager.h>
 #include <gui/view_dispatcher.h>
@@ -9,8 +10,8 @@
 #include <gui/modules/popup.h>
 #include <gui/view.h>
 #include "nrf24.h"
-#include <extra_beacon.h>
 #include <furi_hal_bt.h>
+#include <storage/storage.h>
 
 #define MAX_SCAN_RESULTS 128
 #define MAX_LOG_LINES 20
@@ -55,6 +56,7 @@ typedef struct {
     Gui* gui;
     SceneManager* scene_manager;
     ViewDispatcher* view_dispatcher;
+    Storage* storage;
 
     Submenu* submenu;
     Widget* widget;
@@ -91,6 +93,12 @@ typedef struct {
 
     uint8_t clone_buffer[32];
     uint8_t clone_len;
+
+    // Scene shared timer state (avoids file-scope globals)
+    FuriTimer* scene_timer;
+    uint16_t scene_count;
+    uint8_t scene_ch_idx;
+    bool scene_flag;
 } App;
 
 typedef enum {
@@ -104,3 +112,5 @@ typedef enum {
 void app_add_log(App* app, const char* format, ...);
 void app_scan_results_reset(App* app);
 void app_scan_results_add(App* app, NRF24Packet* pkt);
+void settings_save(App* app);
+void settings_load(App* app);

@@ -43,6 +43,7 @@ typedef struct {
     bool running;
     uint8_t write_pos;
     FuriTimer* timer;
+    FuriSemaphore* exit_sem;
     Gui* gui;
     ViewPort* view_port;
     float threshold;
@@ -215,6 +216,7 @@ static void scope_input_callback(InputEvent* event, void* context) {
     case InputKeyBack:
         if(event->type == InputTypeLong) {
             scope->running = false;
+            furi_semaphore_release(scope->exit_sem);
         }
         break;
 
@@ -229,13 +231,15 @@ static void scope_draw_callback(Canvas* canvas, void* context) {
     draw_waveform(canvas, scope);
 }
 
-static void scope_alloc(SignalScope* scope) {
+static bool scope_alloc(SignalScope* scope) {
     scope->band = Band400MHz;
     scope->frequency = band_frequencies[scope->band];
     scope->threshold = -85.0f;
     scope->frozen = false;
     scope->running = true;
     scope->write_pos = 0;
+    scope->timer = NULL;
+    scope->exit_sem = NULL;
     memset(scope->buffer, 0, sizeof(scope->buffer));
     memset(scope->peaks, 0, sizeof(scope->peaks));
 
@@ -249,10 +253,26 @@ static void scope_alloc(SignalScope* scope) {
     view_port_input_callback_set(scope->view_port, scope_input_callback, scope);
     gui_add_view_port(scope->gui, scope->view_port, GuiLayerFullscreen);
 
+    // Exit semaphore (replaces polling loop)
+    scope->exit_sem = furi_semaphore_alloc(1, 0);
+    if(!scope->exit_sem) {
+        FURI_LOG_E(TAG, "Failed to allocate exit semaphore");
+        radio_stop();
+        return false;
+    }
+
     // Timer for sampling
     scope->timer =
         furi_timer_alloc(scope_timer_callback, FuriTimerTypePeriodic, scope);
+    if(!scope->timer) {
+        FURI_LOG_E(TAG, "Failed to allocate timer");
+        furi_semaphore_free(scope->exit_sem);
+        radio_stop();
+        return false;
+    }
     furi_timer_start(scope->timer, furi_ms_to_ticks(SAMPLE_INTERVAL_MS));
+
+    return true;
 }
 
 static void scope_free(SignalScope* scope) {
@@ -264,17 +284,19 @@ static void scope_free(SignalScope* scope) {
     gui_remove_view_port(scope->gui, scope->view_port);
     view_port_free(scope->view_port);
     furi_record_close(RECORD_GUI);
+    furi_semaphore_free(scope->exit_sem);
 }
 
 int32_t zx_signal_scope_app_entry(void* p) {
     UNUSED(p);
 
     SignalScope* scope = malloc(sizeof(SignalScope));
-    scope_alloc(scope);
-
-    while(scope->running) {
-        furi_delay_ms(100);
+    if(!scope_alloc(scope)) {
+        free(scope);
+        return 1;
     }
+
+    furi_semaphore_acquire(scope->exit_sem, FuriWaitForever);
 
     scope_free(scope);
     free(scope);

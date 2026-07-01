@@ -5,26 +5,22 @@
 #include <stdio.h>
 #include <string.h>
 
-static FuriTimer* timer = NULL;
-static bool captured = false;
-
 static void timer_callback(void* context) {
     App* app = context;
-    static uint8_t ch_idx = 0;
     const uint8_t chs[] = {37, 38, 39};
 
-    if(captured) {
-        nrf24_set_channel(chs[ch_idx % 3]);
+    if(app->scene_flag) {
+        nrf24_set_channel(chs[app->scene_ch_idx % 3]);
         nrf24_set_mode(NRF24ModeTx);
         nrf24_set_ble_adv_mode(true);
         nrf24_send_packet(app->clone_buffer, app->clone_len, 20);
         nrf24_set_mode(NRF24ModeRx);
-        ch_idx++;
+        app->scene_ch_idx++;
         return;
     }
 
-    uint8_t ch = chs[ch_idx % 3];
-    ch_idx++;
+    uint8_t ch = chs[app->scene_ch_idx % 3];
+    app->scene_ch_idx++;
 
     nrf24_set_channel(ch);
     nrf24_set_mode(NRF24ModeRx);
@@ -35,7 +31,7 @@ static void timer_callback(void* context) {
     if(nrf24_receive_packet(&pkt, 30)) {
         app->clone_len = pkt.payload_len;
         memcpy(app->clone_buffer, pkt.payload, pkt.payload_len);
-        captured = true;
+        app->scene_flag = true;
         char mac_str[18];
         snprintf(mac_str, sizeof(mac_str), "%02X:%02X:%02X:%02X:%02X:%02X",
             pkt.mac[0], pkt.mac[1], pkt.mac[2], pkt.mac[3], pkt.mac[4], pkt.mac[5]);
@@ -48,17 +44,17 @@ static void timer_callback(void* context) {
 static void button_callback(GuiButtonType type, InputType input_type, void* context) {
     (void)type; (void)input_type;
     App* app = context;
-    if(timer) {
-        furi_timer_free(timer); timer = NULL;
-        captured = false;
+    if(app->scene_timer) {
+        furi_timer_free(app->scene_timer); app->scene_timer = NULL;
+        app->scene_flag = false;
         nrf24_set_ble_adv_mode(false);
     } else {
         nrf24_set_ble_adv_mode(true);
-        captured = false;
+        app->scene_flag = false;
         app->log_text[0] = '\0'; app->log_len = 0;
         app_add_log(app, "Listening for BLE adv");
-        timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
-        furi_timer_start(timer, 100);
+        app->scene_timer = furi_timer_alloc(timer_callback, FuriTimerTypePeriodic, app);
+        furi_timer_start(app->scene_timer, 100);
     }
     view_dispatcher_send_custom_event(app->view_dispatcher, BLEEventToggleScan);
 }
@@ -86,10 +82,10 @@ bool zx_ble_spam_scene_device_clone_on_event(void* context, SceneManagerEvent ev
         return true;
     }
     if(event.type == SceneManagerEventTypeCustom && event.event == BLEEventToggleScan) {
-        if(timer) {
+        if(app->scene_timer) {
             widget_reset(app->widget);
             widget_add_string_element(app->widget, 64, 5, AlignCenter, AlignCenter, FontPrimary, "Device Clone");
-            widget_add_string_element(app->widget, 64, 25, AlignCenter, AlignCenter, FontSecondary, captured ? "Replaying" : "Listening");
+            widget_add_string_element(app->widget, 64, 25, AlignCenter, AlignCenter, FontSecondary, app->scene_flag ? "Replaying" : "Listening");
             widget_add_button_element(app->widget, GuiButtonTypeCenter, "Stop", button_callback, app);
         } else {
             widget_reset(app->widget);
@@ -103,8 +99,8 @@ bool zx_ble_spam_scene_device_clone_on_event(void* context, SceneManagerEvent ev
 }
 
 void zx_ble_spam_scene_device_clone_on_exit(void* context) {
-    if(timer) { furi_timer_free(timer); timer = NULL; }
     App* app = context;
+    if(app->scene_timer) { furi_timer_free(app->scene_timer); app->scene_timer = NULL; }
     nrf24_set_ble_adv_mode(false);
     text_box_set_text(app->text_box, "");
     widget_reset(app->widget);

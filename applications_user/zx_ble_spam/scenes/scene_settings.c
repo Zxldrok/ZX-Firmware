@@ -11,6 +11,7 @@ static void radio_cb(VariableItem* item) {
     uint8_t idx = variable_item_get_current_value_index(item);
     app->settings_radio = idx;
     variable_item_set_current_value_text(item, radio_options[idx]);
+    settings_save(app);
 }
 
 static void interval_cb(VariableItem* item) {
@@ -18,6 +19,7 @@ static void interval_cb(VariableItem* item) {
     uint8_t idx = variable_item_get_current_value_index(item);
     app->settings_adv_interval = idx;
     variable_item_set_current_value_text(item, interval_options[idx]);
+    settings_save(app);
 }
 
 static void power_cb(VariableItem* item) {
@@ -25,6 +27,7 @@ static void power_cb(VariableItem* item) {
     uint8_t idx = variable_item_get_current_value_index(item);
     app->settings_tx_power = idx;
     variable_item_set_current_value_text(item, power_options[idx]);
+    settings_save(app);
 }
 
 static void mac_random_cb(VariableItem* item) {
@@ -32,6 +35,7 @@ static void mac_random_cb(VariableItem* item) {
     uint8_t idx = variable_item_get_current_value_index(item);
     app->settings_mac_random = (idx == 1);
     variable_item_set_current_value_text(item, idx ? "On" : "Off");
+    settings_save(app);
 }
 
 static void cycle_cb(VariableItem* item) {
@@ -39,6 +43,7 @@ static void cycle_cb(VariableItem* item) {
     uint8_t idx = variable_item_get_current_value_index(item);
     app->settings_cycle_rate = idx;
     variable_item_set_current_value_text(item, cycle_options[idx]);
+    settings_save(app);
 }
 
 void zx_ble_spam_scene_settings_on_enter(void* context) {
