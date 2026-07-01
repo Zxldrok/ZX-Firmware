@@ -1,0 +1,12 @@
+App(
+    appid="zx_rick_roll",
+    name="Rick Roll",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_rick_roll_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="Joue Never Gonna Give You Up",
+)

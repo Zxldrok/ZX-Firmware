@@ -1,0 +1,12 @@
+App(
+    appid="zx_mouse_poltergeist",
+    name="Mouse Poltergeist",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_mouse_poltergeist_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="Poltergeist de souris sur le PC",
+)

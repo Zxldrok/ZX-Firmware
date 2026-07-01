@@ -1,0 +1,12 @@
+App(
+    appid="zx_ghost_typist",
+    name="Ghost Typist",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_ghost_typist_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="Tape un message mystérieux sur le PC",
+)

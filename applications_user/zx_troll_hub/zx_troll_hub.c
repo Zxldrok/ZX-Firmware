@@ -10,6 +10,11 @@
 
 typedef enum {
     TrollAppIndexTvBGone = 0,
+    TrollAppIndexIrMulti,
+    TrollAppIndexRickRoll,
+    TrollAppIndexGhostTypist,
+    TrollAppIndexMousePoltergeist,
+    TrollAppIndexRandomBeep,
     TrollAppIndexCount,
 } TrollAppIndex;
 
@@ -19,6 +24,22 @@ typedef struct {
     Submenu* submenu;
 } TrollHub;
 
+typedef struct {
+    TrollAppIndex index;
+    const char* name;
+    const char* fap_path;
+} TrollAppEntry;
+
+static const TrollAppEntry apps[] = {
+    {TrollAppIndexTvBGone, "ZX TV B Gone", APPS_PATH "/zx_tv_b_gone.fap"},
+    {TrollAppIndexIrMulti, "ZX IR Multi (projo/son/clim)", APPS_PATH "/zx_ir_multi.fap"},
+    {TrollAppIndexRickRoll, "ZX Rick Roll (musique + anim)", APPS_PATH "/zx_rick_roll.fap"},
+    {TrollAppIndexGhostTypist, "ZX Ghost Typist (clavier)", APPS_PATH "/zx_ghost_typist.fap"},
+    {TrollAppIndexMousePoltergeist, "ZX Mouse Poltergeist", APPS_PATH "/zx_mouse_poltergeist.fap"},
+    {TrollAppIndexRandomBeep, "ZX Random Beep (bip aleatoire)", APPS_PATH "/zx_random_beep.fap"},
+};
+#define APPS_COUNT (sizeof(apps) / sizeof(apps[0]))
+
 static void troll_hub_launch_app(const char* path) {
     Loader* loader = furi_record_open(RECORD_LOADER);
     loader_start_detached_with_gui_error(loader, path, NULL);
@@ -27,12 +48,11 @@ static void troll_hub_launch_app(const char* path) {
 
 static void troll_hub_menu_callback(void* context, uint32_t index) {
     UNUSED(context);
-    switch(index) {
-    case TrollAppIndexTvBGone:
-        troll_hub_launch_app(APPS_PATH "/zx_tv_b_gone.fap");
-        break;
-    default:
-        break;
+    for(size_t i = 0; i < APPS_COUNT; i++) {
+        if(apps[i].index == index) {
+            troll_hub_launch_app(apps[i].fap_path);
+            break;
+        }
     }
 }
 
@@ -58,22 +78,15 @@ static TrollHub* troll_hub_alloc(void) {
     app->submenu = submenu_alloc();
     submenu_set_header(app->submenu, "Troll Apps");
 
-    bool tv_b_gone_installed = troll_hub_is_app_installed(APPS_PATH "/zx_tv_b_gone.fap");
-    submenu_add_item(
-        app->submenu,
-        tv_b_gone_installed ? "ZX TV B Gone" : "ZX TV B Gone (non installe)",
-        TrollAppIndexTvBGone,
-        troll_hub_menu_callback,
-        app);
-
-    submenu_add_lockable_item(
-        app->submenu,
-        "Autres apps... (bientot)",
-        99,
-        NULL,
-        app,
-        true,
-        "En developpement!");
+    for(size_t i = 0; i < APPS_COUNT; i++) {
+        bool installed = troll_hub_is_app_installed(apps[i].fap_path);
+        submenu_add_item(
+            app->submenu,
+            installed ? apps[i].name : "---",
+            apps[i].index,
+            installed ? troll_hub_menu_callback : NULL,
+            app);
+    }
 
     view_set_previous_callback(submenu_get_view(app->submenu), troll_hub_exit_callback);
     view_dispatcher_add_view(app->view_dispatcher, 0, submenu_get_view(app->submenu));
@@ -92,10 +105,8 @@ static void troll_hub_free(TrollHub* app) {
 
 int32_t zx_troll_hub_app(void* p) {
     UNUSED(p);
-
     TrollHub* app = troll_hub_alloc();
     view_dispatcher_run(app->view_dispatcher);
     troll_hub_free(app);
-
     return 0;
 }

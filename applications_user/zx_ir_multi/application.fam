@@ -1,0 +1,12 @@
+App(
+    appid="zx_ir_multi",
+    name="IR Multi",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_ir_multi_app",
+    requires=["gui", "infrared"],
+    stack_size=3 * 1024,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="Éteint projecteurs, barres de son, clims",
+)

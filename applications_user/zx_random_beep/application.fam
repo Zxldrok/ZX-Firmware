@@ -1,0 +1,12 @@
+App(
+    appid="zx_random_beep",
+    name="Random Beep",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="zx_random_beep_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_version="1.0",
+    fap_category="Troll",
+    fap_author="ZX Team",
+    fap_description="Bip aléatoire pour faire croire à un espion",
+)
